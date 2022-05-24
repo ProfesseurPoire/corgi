@@ -1,0 +1,8 @@
+add_subdirectory(test)
+add_subdirectory(containers)
+add_subdirectory(logger)
+add_subdirectory(ui)
+add_subdirectory(ecs)
+add_subdirectory(filesystem)
+add_subdirectory(string)
+add_subdirectory(utils)

@@ -1,0 +1,28 @@
+{
+	"is_lit": false,
+
+	"Uniforms": 
+	[
+		{
+			"name": "uMainColor",
+			"type": "Vec4"
+		},
+		{
+			"name": "uRectangleWidth",
+			"type": "float",
+			"value": 1.0
+		},
+		{
+			"name": "uRectangleHeight",
+			"type": "float",
+			"value":1.0
+		},
+		{
+			"name": "uRadius",
+			"type": "float",
+			"value":0.1
+		}
+	],
+	"vertex_shader":	 "corgi/materials/ui/uiRectangle_fs.glsl",
+	"fragment_shader": "corgi/materials/ui/uiRectangle_vs.glsl"
+}

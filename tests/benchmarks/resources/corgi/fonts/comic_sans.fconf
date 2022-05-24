@@ -1,0 +1,16 @@
+{
+  "Configurations": [
+    {
+      "font-size": 20,
+      "render_mode": "normal"
+    },
+    {
+      "font-size": 24,
+      "render_mode": "normal"
+    },
+    {
+      "font-size": 38,
+      "render_mode": "normal"
+    }
+  ]
+}

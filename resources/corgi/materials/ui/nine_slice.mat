@@ -1,0 +1,29 @@
+{
+  "Uniforms": [
+    {
+      "name": "alpha",
+      "type": "float",
+      "value": 1.0
+    },
+    {
+      "name": "position",
+      "type": "Vec2"
+    },
+    {
+      "name": "dimensions",
+      "type": "Vec2"
+    },
+    {
+      "name": "pivot",
+      "type": "Vec2"
+    },
+    {
+      "name": "borders",
+      "type": "Vec4"
+    }
+  ],
+
+  "is_lit": false,
+  "vertex_shader": "corgi/materials/ui/nine_slice_vs.glsl",
+  "fragment_shader": "corgi/materials/ui/nine_slice_fs.glsl"
+}

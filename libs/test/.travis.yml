@@ -1,0 +1,63 @@
+# Ubuntu 14.04 Trusty support
+# inspiration for this whole thing comes from : https://github.com/google/re2/blob/master/.travis.yml
+# especially the part about using night build from llvm toolchain to get 
+# clang 10 support
+sudo: required
+dist: bionic
+
+language: cpp
+sude: enabled
+
+matrix:
+  include:
+    # works on Precise and Trusty
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-9
+      env:
+        - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.7
+            - sourceline: 'deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-10 main'
+              key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+          packages:
+            - clang-10
+      env:
+        - MATRIX_EVAL="CC=clang-10 CXX=clang++-10"
+    - os: osx
+      osx_image: xcode11.3
+      env:
+        - MATRIX_EVAL="CC=clang CXX=clang++"
+
+before_install : 
+  - if [ "$TRAVIS_DIST" = "bionic" ]; then
+      sudo apt-get install apt-transport-https ca-certificates gnupg software-properties-common wget;
+      wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null;
+      sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main';
+      sudo apt-get update;
+      sudo apt-get install cmake;
+    fi;
+  - eval "${MATRIX_EVAL}"
+
+before_script:  
+  - mkdir build
+  - mkdir b
+  - mkdir b/Debug
+  - cd build
+  - if [ "$TRAVIS_DIST" = "bionic" ]; then
+      /usr/bin/cmake .. -DCMAKE_BUILD_TYPE=Debug;
+    else
+      cmake .. -DCMAKE_BUILD_TYPE=Debug;
+    fi;
+
+script: make && ctest -V

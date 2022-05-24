@@ -1,0 +1,5 @@
+[14:02:08] : Info : {default} : "Shader Constructor for ./resources/corgi/materials/unlit/unlit_sprite_vs.glsl" at (Shader.cpp::Shader 13) 
+[14:02:08] : Info : {default} : "Shader Constructor for ./resources/corgi/materials/unlit/unlit_sprite_fs.glsl" at (Shader.cpp::Shader 13) 
+[14:02:08] : Info : {default} : "Texture Constructor for ./resources/majestic.tex" at (texture.cpp::Texture 102) 
+[14:02:08] : Info : {default} : "Texture Destructor for majestic.tex" at (texture.cpp::~Texture 228) 
+[14:02:08] : Info : {default} : "SDL has been successfully finalized" at (SDLContext.cpp::~SDLContext 25) 

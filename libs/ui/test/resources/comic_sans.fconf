@@ -1,0 +1,28 @@
+{
+  "Configurations": [
+    {
+      "font-size": 24,
+      "render_mode": "normal"
+    },
+    {
+      "font-size": 38,
+      "render_mode": "normal"
+    },
+    {
+      "font-size": 38,
+      "render_mode": "light"
+    },
+    {
+      "font-size": 38,
+      "render_mode": "mono"
+    },
+    {
+      "font-size": 38,
+      "render_mode": "lcd"
+    },
+    {
+      "font-size": 38,
+      "render_mode": "lcd_v"
+    }
+  ]
+}
