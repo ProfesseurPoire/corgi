@@ -69,6 +69,11 @@ float corgi::math::floor(float value)
     return std::floor(value);
 }
 
+float corgi::math::ceil(float val)
+{
+    return std::ceil(val);
+}
+
 double corgi::math::bernstein_polynomial(const int n, const int i, const double t)
 {
     const auto dn = static_cast<double>(n);

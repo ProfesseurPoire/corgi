@@ -25,9 +25,9 @@ namespace corgi
         return configurations_[current_configuration_index_]->texture.get();
     }
 
-    const std::map<int, CharacterInfo>& Font::characters() const
+    const std::map<int, GlyphInfo>& Font::glyph_infos() const
     {
-        return configurations_[current_configuration_index_]->characters;
+        return configurations_[current_configuration_index_]->glyphs;
     }
 
     long Font::ascent() const
@@ -74,8 +74,8 @@ namespace corgi
 
     struct Atlas
     {
-        CharacterInfo
-            characters[256];    // Todo : Not sure this is the best idea I had too
+        // Todo : Not sure this is the best idea I had too ?????
+        GlyphInfo                  characters[256];
         std::vector<unsigned char> image;
         long                       width {0};
         long                       height {0};
@@ -181,12 +181,17 @@ namespace corgi
 
             // Build the information used to know where a character is
             // on the final image
-            atlas.characters[i].ax = static_cast<float>(glyph->advance.x >> 6);
-            atlas.characters[i].ay = static_cast<float>(glyph->advance.y >> 6);
-            atlas.characters[i].bw = static_cast<float>(glyph->bitmap.width);
-            atlas.characters[i].bh = static_cast<float>(glyph->bitmap.rows);
-            atlas.characters[i].bl = static_cast<float>(glyph->bitmap_left);
-            atlas.characters[i].bt = static_cast<float>(glyph->bitmap_top);
+            atlas.characters[i].advance_x    = static_cast<float>(glyph->advance.x >> 6);
+            atlas.characters[i].advance_y    = static_cast<float>(glyph->advance.y >> 6);
+            atlas.characters[i].glyph_width  = static_cast<float>(glyph->bitmap.width);
+            atlas.characters[i].glyph_height = static_cast<float>(glyph->bitmap.rows);
+            atlas.characters[i].bitmap_top   = static_cast<float>(glyph->bitmap_top);
+            atlas.characters[i].bearing_x =
+                static_cast<float>(glyph->metrics.horiBearingX);
+            // Todo : not to sure about hori bearing y?
+            atlas.characters[i].bearing_y =
+                static_cast<float>(glyph->metrics.horiBearingY);
+
             atlas.characters[i].tx = static_cast<float>(x) / static_cast<float>(width);
 
             // Write the glyphs in the texture
@@ -236,8 +241,6 @@ namespace corgi
         {
             auto& configuration =
                 *configurations_.emplace_back(make_unique<Configuration>());
-            long width;
-            long h;
 
             font_file.read(reinterpret_cast<char*>(&configuration.size),
                            sizeof configuration.size);
@@ -254,8 +257,10 @@ namespace corgi
             font_file.read(reinterpret_cast<char*>(&configuration.height),
                            sizeof configuration.height);
 
+            long width;
             font_file.read(reinterpret_cast<char*>(&width), sizeof width);
 
+            long h;
             font_file.read(reinterpret_cast<char*>(&h), sizeof h);
 
             auto* pixels = new unsigned char[width * h * 4];
@@ -269,10 +274,9 @@ namespace corgi
 
             for(int i = 0; i < charactersSize; i++)
             {
-                CharacterInfo characterInfo;
-                font_file.read(reinterpret_cast<char*>(&characterInfo),
-                               sizeof(CharacterInfo));
-                configuration.characters.emplace(characterInfo.charCode, characterInfo);
+                GlyphInfo glyph_info;
+                font_file.read(reinterpret_cast<char*>(&glyph_info), sizeof(GlyphInfo));
+                configuration.glyphs.emplace(glyph_info.glyph_index, glyph_info);
             }
 
             static std::map<RenderingMode, SimpleString> conversion {

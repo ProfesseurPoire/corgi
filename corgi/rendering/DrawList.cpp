@@ -190,6 +190,8 @@ void DrawList::Text::update()
 
     auto descent = static_cast<float>(font.descent());
 
+    double real_advance_x = 0.0;
+
     text_real_width = 0;
 
     lines_width.clear();
@@ -259,37 +261,48 @@ void DrawList::Text::update()
                 baseline += line_height;
             }
             text_real_width = 0;
+            real_advance_x  = 0.0;
             continue;
         }
 
         // Maybe I just skip if codepoint equals 0
 
-        CharacterInfo ci = conf.characters.at(shapedGlyphs_[i].codepoint);
+        GlyphInfo ci = conf.glyphs.at(shapedGlyphs_[i].codepoint);
 
-        const float texture_width  = static_cast<float>(conf.texture->width());
-        const float texture_height = static_cast<float>(conf.texture->height());
+        const auto texture_width  = static_cast<float>(conf.texture->width());
+        const auto texture_height = static_cast<float>(conf.texture->height());
 
         if(i == 0)
         {
-            if(text_max_height < ci.bt)
+            if(text_max_height < ci.bitmap_top)
             {
-                text_max_height = ci.bt;
+                text_max_height = ci.bitmap_top;
             }
         }
 
-        float vvv = baseline - (ci.bh - ci.bt);
+        float vvv = baseline - (ci.glyph_height - ci.bitmap_top);
 
         if(text_min_height > vvv)
             text_min_height = vvv;
 
-        float       v              = (texture_height - ci.bh) / texture_height;
-        float       aa             = ci.bw / texture_width;
-        const float glyph_x_offset = 0;
-        const float glpyh_y_offset = -(ci.bh * scaling - ci.bt * scaling);
-        const float glyph_width    = ci.bw * scaling;
-        const float glyph_height   = ci.bh * scaling;    // abusing a bit here
+        float v  = (texture_height - ci.glyph_height) / texture_height;
+        float aa = ci.glyph_width / texture_width;
+
+        const float glyph_x_offset = ci.bearing_x;
+        const float glpyh_y_offset =
+            -(ci.glyph_height * scaling - ci.bitmap_top * scaling);
+        const float glyph_width  = ci.glyph_width * scaling;
+        const float glyph_height = ci.glyph_height * scaling;    // abusing a bit here
 
         int ii = i * 20;
+
+        //std::cout << "OffsetX " << offset.x << std::endl;
+        std::cout << "text_real_width " << text_real_width << std::endl;
+        std::cout << "real_advance_x " << real_advance_x << std::endl;
+        //std::cout << "glyph_x_offset " << glyph_x_offset << std::endl;
+        std::cout << "glyph_width " << glyph_width << std::endl;
+        //std::cout << "ax " << ci.ax << std::endl;
+        std::cout << "glyph " << shapedGlyphs_[i].characters.front() << std::endl;
 
         // TODO : Check to make this works both in world space and screen space.
         // Probably juste have to change the sign of y depending on which space we are
@@ -317,7 +330,11 @@ void DrawList::Text::update()
         vertices[ii + 18] = ci.tx;
         vertices[ii + 19] = 1.0f;
 
-        text_real_width += shapedGlyphs_[i].advance.x;
+        real_advance_x += shapedGlyphs_[i].advance.x;
+
+        // Todo : I'm not exactly sure what's the best way to handle this here
+        // because I usually have non integer value, which means : problems
+        text_real_width = math::ceil(real_advance_x);
     }
 
     total_height = text_max_height - text_min_height;

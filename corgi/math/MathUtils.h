@@ -65,6 +65,16 @@ namespace corgi
          */
         [[nodiscard]] float floor(float value);
 
+        /**
+         * @brief Computes the highest integere from @a ref value
+         * 
+         *          If val equals 2.1f, it will return 3.0f
+         * 
+         * @param value 
+         * @return gloat 
+         */
+        [[nodiscard]] float ceil(float val);
+
         [[nodiscard]] float clamp(float value, float min, float max) noexcept;
         [[nodiscard]] int   clamp(int value, int min, int max);
 
