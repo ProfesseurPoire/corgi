@@ -3,7 +3,6 @@
 #include <corgi/math/Vec2.h>
 #include <corgi/rendering/Material.h>
 #include <corgi/rendering/Sprite.h>
-#include <corgi/resources/Mesh.h>
 
 namespace corgi
 {
@@ -19,12 +18,6 @@ namespace corgi
 
     public:
         //  Lifecycle
-
-        /*!
-		 * @brief	Delete the mesh used by every sprite renderer
-		 */
-        static void  release_sprite_mesh();
-        static Mesh& get_sprite_mesh();
 
         /*!
 		 * @brief	Construct a default SpriteRenderer 

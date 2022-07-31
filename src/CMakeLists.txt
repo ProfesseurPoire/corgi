@@ -1,0 +1,6 @@
+add_subdirectory(inputs)
+add_subdirectory(main)
+add_subdirectory(rendering)
+add_subdirectory(resources)
+add_subdirectory(systems)
+add_subdirectory(utils)

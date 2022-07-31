@@ -1,11 +1,12 @@
 #include <corgi/components/BoxCollider.h>
+#include <corgi/resources/Mesh.h>
 
 namespace corgi
 {
 	BoxCollider::BoxCollider()
 	{
 		// Actually builds a mesh under the hood for the BoxCollider
-		_mesh = corgi::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
+		_mesh = std::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
 		build_box();
 	}
 
@@ -13,7 +14,7 @@ namespace corgi
 		: _width(width), _height(height),  _depth(depth)
 	{
 		layer(l);
-		_mesh = corgi::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
+		_mesh = std::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
 		build_box();
 	}
 

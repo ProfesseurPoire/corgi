@@ -9,7 +9,6 @@
 
 #include <corgi/ecs/Component.h>
 #include <corgi/ecs/RefEntity.h>
-#include <corgi/ecs/EntityId.h>
 
 #include <corgi/math/Vec2.h>
 

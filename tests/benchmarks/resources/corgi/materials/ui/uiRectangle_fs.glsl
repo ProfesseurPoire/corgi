@@ -11,40 +11,46 @@ out vec4 color;
 
 float roundRectangle(vec2 position, vec2 rectangleSize, float radius) 
 {
-    return length(max(abs(position)-rectangleSize+vec2(radius,radius),0.0))-radius;
+    return length(max(abs(position)-rectangleSize+radius,0.0));
 }
 
 void main()
 {
-	// If radius is equal to zero, it means no 
-	// round corner, so we simply returns the widget's color
-	if(uRadius==0.0f)
+	float halfRectangleWidth  = uRectangleWidth/2.0f;
+	float halfRectangleHeight = uRectangleHeight/2.0f;
+
+	float realX = ((vUv.x*2.0f)-1.0f)*halfRectangleWidth;
+	float realY = ((vUv.y*2.0f)-1.0f)*halfRectangleHeight;
+
+	float distance = roundRectangle
+	(
+		vec2(realX, realY),
+		vec2(halfRectangleWidth, halfRectangleHeight),
+		 uRadius
+	);
+
+	if(distance>uRadius)
+	{
+		discard;
+	}
+
+	if(distance==0)
 	{
 		color = uMainColor;
 		return;
 	}
 
-	float realX = (vUv.x - 0.5f)*uRectangleWidth;
-	float realY = (vUv.y - 0.5f)*uRectangleHeight;
-
+	float alpha = uRadius - distance;
+		
 	
-	float distance = roundRectangle
-	(
-		vec2(realX, realY),
-		vec2(uRectangleWidth*0.5, uRectangleHeight*0.5),
-		 uRadius
-	);
-
-	distance= min(distance,0.0);
+	//distance= min(distance,0.0);
 
 	// Smoothing a bit to add some anti aliasing
-	
-	float smoothStrength = 1.0;
 
-	float smoothedAlpha =  smoothstep(0.0f, 1.0f,-distance/smoothStrength);
+	float smoothedAlpha = smoothstep(0.0f, 1.0f,alpha);
 	
 	vec4 c = uMainColor;
-	c.a = smoothedAlpha;
+	c.a = smoothedAlpha *c.a;
 
 	color = c;
 }

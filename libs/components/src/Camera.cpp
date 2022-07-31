@@ -8,13 +8,25 @@ using namespace std;
 
 namespace corgi
 {
-    void Layers::enable_all() { layers_ = ~(int_64(0)); }
+    void Layers::enable_all()
+    {
+        layers_ = ~(int_64(0));
+    }
 
-    void Layers::disable_all() { layers_ = int_64(0); }
+    void Layers::disable_all()
+    {
+        layers_ = int_64(0);
+    }
 
-    int_64 Layers::layers() const { return layers_; }
+    int_64 Layers::layers() const
+    {
+        return layers_;
+    }
 
-    void Layers::enable_layer(const int layer_id) { layers_ |= (int_64(1) << layer_id); }
+    void Layers::enable_layer(const int layer_id)
+    {
+        layers_ |= (int_64(1) << layer_id);
+    }
 
     void Layers::enable_one_layer(const int layer_id)
     {
@@ -40,13 +52,28 @@ namespace corgi
         //return point;
     }
 
+    Window* Camera::get_window()
+    {
+        return window_;
+    }
+
+    const Window* Camera::get_window() const
+    {
+        return window_;
+    }
+
     /*Vec2 Camera::screen_to_world_point(const int x, const int y)
     {
         return screen_to_world_point(Vec2(static_cast<float>(x), static_cast<float>(y)));
     }*/
 
     Vec2 Camera::screen_to_world(
-        const Transform& transform, int screeWidth, int screeHeight, int x, int y) const
+        const Transform& transform,
+        int              screeWidth,
+        int              screeHeight,
+        int              x,
+        int              y
+        ) const
     {
         // The "real" way to do this would be to use the inverse of the projection Matrix4x4
         // and multiply it to the mouse coordinate on the -1;1 set
@@ -73,7 +100,8 @@ namespace corgi
     void Camera::ortho(const float height,
                        const float ratio,
                        const float znear,
-                       const float zfar)
+                       const float zfar
+        )
     {
         type_ = Type::Ortho;
 
@@ -86,8 +114,13 @@ namespace corgi
             Matrix::ortho(-ratio * height, ratio * height, -height, height, znear, zfar);
     }
 
-    void
-    Camera::ortho(float left, float right, float bottom, float top, float near, float far)
+    void Camera::ortho(float left,
+                       float right,
+                       float bottom,
+                       float top,
+                       float near,
+                       float far
+        )
     {
         type_ = Type::Ortho;
 
@@ -115,11 +148,20 @@ namespace corgi
         //_isOrthographic = false;
     }
 
-    Color& Camera::clearColor() noexcept { return mClearColor; }
+    Color& Camera::clearColor() noexcept
+    {
+        return mClearColor;
+    }
 
-    const Color& Camera::clearColor() const noexcept { return mClearColor; }
+    const Color& Camera::clearColor() const noexcept
+    {
+        return mClearColor;
+    }
 
-    void Camera::clearColor(Color color) { mClearColor = color; }
+    void Camera::clearColor(Color color)
+    {
+        mClearColor = color;
+    }
 
     void Camera::znear(float value)
     {
@@ -145,19 +187,40 @@ namespace corgi
         is_dirty_            = true;
     }
 
-    float Camera::orthographic_height() const { return orthographic_height_; }
+    float Camera::orthographic_height() const
+    {
+        return orthographic_height_;
+    }
 
-    float Camera::ratio() const { return ratio_; }
+    float Camera::ratio() const
+    {
+        return ratio_;
+    }
 
-    float Camera::znear() const { return znear_; }
+    float Camera::znear() const
+    {
+        return znear_;
+    }
 
-    float Camera::zfar() const { return zfar_; }
+    float Camera::zfar() const
+    {
+        return zfar_;
+    }
 
-    bool Camera::is_orthographic() const { return type_ == Type::Ortho; }
+    bool Camera::is_orthographic() const
+    {
+        return type_ == Type::Ortho;
+    }
 
-    bool Camera::is_perspective() const { return type_ == Type::Perspective; }
+    bool Camera::is_perspective() const
+    {
+        return type_ == Type::Perspective;
+    }
 
-    bool Camera::is_custom() const { return type_ == Type::Custom; }
+    bool Camera::is_custom() const
+    {
+        return type_ == Type::Custom;
+    }
 
     void Camera::projection_matrix(const Matrix& m)
     {
@@ -173,17 +236,35 @@ namespace corgi
         viewport_.height = height;
     }
 
-    Viewport& Camera::viewport() noexcept { return viewport_; }
+    Viewport& Camera::viewport() noexcept
+    {
+        return viewport_;
+    }
 
-    const Viewport& Camera::viewport() const noexcept { return viewport_; }
+    const Viewport& Camera::viewport() const noexcept
+    {
+        return viewport_;
+    }
 
-    Matrix& Camera::projection_matrix() { return projection_matrix_; }
+    Matrix& Camera::projection_matrix()
+    {
+        return projection_matrix_;
+    }
 
-    const Matrix& Camera::projection_matrix() const { return projection_matrix_; }
+    const Matrix& Camera::projection_matrix() const
+    {
+        return projection_matrix_;
+    }
 
-    Layers& Camera::culling_layers() { return culling_layers_; }
+    Layers& Camera::culling_layers()
+    {
+        return culling_layers_;
+    }
 
-    const Layers& Camera::culling_layers() const { return culling_layers_; }
+    const Layers& Camera::culling_layers() const
+    {
+        return culling_layers_;
+    }
 
     void Camera::move(Camera&& c) noexcept
     {
@@ -199,6 +280,7 @@ namespace corgi
         mClearColor          = c.mClearColor;
         viewport_            = c.viewport_;
         order_               = c.order_;
+        window_              = c.window_;
     }
 
     void Camera::copy(const Camera& c)
@@ -212,34 +294,55 @@ namespace corgi
         ratio_               = c.ratio_;
         orthographic_height_ = c.orthographic_height_;
         // making a framebuffer copy here
-        framebuffer_ = make_unique<FrameBuffer>(*c.framebuffer_.get());
+        framebuffer_ = std::make_unique<FrameBuffer>(*c.framebuffer_.get());
         mClearColor  = c.mClearColor;
         viewport_    = c.viewport_;
         order_       = c.order_;
+        window_      = c.window_;
     }
 
     void Camera::framebuffer(int width, int height)
     {
         framebuffer_.reset();
-        framebuffer_ = make_unique<FrameBuffer>(width, height);
+        framebuffer_ = std::make_unique<FrameBuffer>(width, height);
     }
 
-    FrameBuffer* Camera::framebuffer() { return framebuffer_.get(); }
+    FrameBuffer* Camera::framebuffer()
+    {
+        return framebuffer_.get();
+    }
 
-    bool Camera::operator<(const Camera& camera) const { return order_ < camera.order_; }
+    bool Camera::operator<(const Camera& camera) const
+    {
+        return order_ < camera.order_;
+    }
 
-    int Camera::order() const { return order_; }
+    int Camera::order() const
+    {
+        return order_;
+    }
 
-    void Camera::order(short v) { order_ = v; }
+    void Camera::order(short v)
+    {
+        order_ = v;
+    }
 
-    Camera::Camera() {}
+    Camera::Camera()
+    {}
 
-    Camera::~Camera() {}
+    Camera::~Camera()
+    {}
 
     // TODO : Probably directly use the constructor's initializer here
-    Camera::Camera(const Camera& c) { copy(c); }
+    Camera::Camera(const Camera& c)
+    {
+        copy(c);
+    }
 
-    Camera::Camera(Camera&& c) noexcept { move(std::move(c)); }
+    Camera::Camera(Camera&& c) noexcept
+    {
+        move(std::move(c));
+    }
 
     Camera& Camera::operator=(const Camera& camera)
     {
@@ -253,5 +356,13 @@ namespace corgi
         return *this;
     }
 
-    const FrameBuffer* Camera::framebuffer() const { return framebuffer_.get(); }
+    const FrameBuffer* Camera::framebuffer() const
+    {
+        return framebuffer_.get();
+    }
+
+    void Camera::set_window(Window& window)
+    {
+        window_ = &window;
+    }
 }    // namespace corgi

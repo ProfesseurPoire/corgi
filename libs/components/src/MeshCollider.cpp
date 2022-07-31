@@ -8,7 +8,7 @@
 
 namespace corgi
 {
-	void MeshCollider::mesh(SharedPtr<Mesh> m)
+	void MeshCollider::mesh(std::shared_ptr<Mesh> m)
 	{
 		// Assuming there is at least a position attribute inside the mesh
 		assert(m->has_attribute(0));

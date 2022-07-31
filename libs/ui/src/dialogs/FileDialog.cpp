@@ -1,5 +1,7 @@
 #include <corgi/filesystem/FileSystem.h>
+#include <corgi/main/Window.h>
 #include <corgi/rendering/texture.h>
+#include <corgi/systems/UISystem.h>
 #include <corgi/ui/Image.h>
 #include <corgi/ui/ScrollView.h>
 #include <corgi/ui/SimpleButton.h>
@@ -24,7 +26,7 @@ void FileItem::initIcon()
 {
     auto icon = textBackground_->emplaceBack<ui::Image>();
 
-    textBackground_->setName("FileItemBackground");
+    textBackground_->set_name("FileItemBackground");
     icon->setDimensions(16, 16);
     icon->setLeft(10);
     icon->setTop(7);
@@ -68,13 +70,13 @@ void FileItem::init()
     auto text = textBackground_->emplaceBack<ui::Text>();
 
     text->setAnchorsToFillParentSpace();
-    text->setText(fileInfo_.name());
+    text->setText(fileInfo_.name().c_str());
     text->setHorizontalAlignment(corgi::HorizontalAlignment::Left);
     text->setColor(Color(215, 215, 215));
     text->setLeft(36);
 }
 
-void FileDialog::initFiles(const SimpleString& rootFolder)
+void FileDialog::initFiles(const std::string& rootFolder)
 {
     currentFolder = rootFolder;
     currentFolderTextBox_->setText(currentFolder.c_str());
@@ -133,7 +135,7 @@ void FileDialog::initFiles(const SimpleString& rootFolder)
     }
 }
 
-FileDialog::FileDialog(const SimpleString& folder, StyleSheet& styleSheet)
+FileDialog::FileDialog(const std::string& folder, StyleSheet& styleSheet)
     : DialogWindow(styleSheet)
     , currentFolder(folder)
 {
@@ -187,7 +189,7 @@ void FileDialog::initOkButton()
     okButton_->deactivate();
 }
 
-corgi::Event<corgi::SimpleString>& FileDialog::onFileSelection()
+corgi::Event<std::string>& FileDialog::onFileSelection()
 {
     return onFileSelection_;
 }

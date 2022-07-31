@@ -87,7 +87,7 @@ void SimpleButton::connectStyleSheetEvents()
 
 void SimpleButton::setText(const SimpleString& text)
 {
-    text_->setText(text);
+    text_->setText(text.c_str());
 }
 
 void SimpleButton::initializeStyleSheet()

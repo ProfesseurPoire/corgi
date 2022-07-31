@@ -50,7 +50,7 @@ public:
 	*			construct it 
 	*/
 	template <class T>
-	void add(int size = 0)
+	void add(unsigned int size = 0)
 	{
 		if(contains<T>())
 			return;

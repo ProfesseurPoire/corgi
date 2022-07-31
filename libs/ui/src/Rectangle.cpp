@@ -1,3 +1,7 @@
+#include "corgi/systems/UISystem.h"
+
+#include <corgi/main/Game.h>
+#include <corgi/main/Window.h>
 #include <corgi/rendering/renderer.h>
 #include <corgi/rendering/texture.h>
 #include <corgi/systems/SpriteRendererSystem.h>
@@ -6,7 +10,8 @@
 
 corgi::ui::Rectangle::Rectangle()
 {
-    mMaterial = *ResourcesCache::get<Material>("corgi/materials/ui/uiRectangle.mat");
+    mMaterial = *ResourcesCache::get<Material>(
+        "corgi/materials/ui/uiRectangle.mat");
 }
 
 void corgi::ui::Rectangle::paint(Renderer& renderer)
@@ -25,19 +30,19 @@ void corgi::ui::Rectangle::paint(Renderer& renderer)
             float r =
                 mStartColor.getRed() +
                 (mDestinationColor.getRed() - mStartColor.getRed()) *
-                    easing::getEasing(mEasingEquation, mElapsedTimeEasing / mDuration);
+                easing::getEasing(mEasingEquation, mElapsedTimeEasing / mDuration);
             float g =
                 mStartColor.getGreen() +
                 (mDestinationColor.getGreen() - mStartColor.getGreen()) *
-                    easing::getEasing(mEasingEquation, mElapsedTimeEasing / mDuration);
+                easing::getEasing(mEasingEquation, mElapsedTimeEasing / mDuration);
             float b =
                 mStartColor.getBlue() +
                 (mDestinationColor.getBlue() - mStartColor.getBlue()) *
-                    easing::getEasing(mEasingEquation, mElapsedTimeEasing / mDuration);
+                easing::getEasing(mEasingEquation, mElapsedTimeEasing / mDuration);
             float a =
                 mStartColor.getAlpha() +
                 (mDestinationColor.getAlpha() - mStartColor.getAlpha()) *
-                    easing::getEasing(mEasingEquation, mElapsedTimeEasing / mDuration);
+                easing::getEasing(mEasingEquation, mElapsedTimeEasing / mDuration);
 
             mColor = Color(r, g, b, a);
         }
@@ -51,15 +56,17 @@ void corgi::ui::Rectangle::paint(Renderer& renderer)
 
     // TO BE FAIR ... that whole thing probably should be in widget
     // so I don't have to do it differently everytime
-    renderer.window_draw_list().add_mesh(SpriteRendererSystem::getUiMesh(),
-                                         Matrix::translation(real_x(), real_y(), depth_) *
-                                             Matrix::scale(width(), height(), 1.0f),
-                                         mMaterial);
+    renderer.window_draw_list().add_mesh(
+        SpriteRendererSystem::getUiMesh(0),
+        Matrix::translation(real_x(), real_y(), depth_) *
+        Matrix::scale(width(), height(), 1.0f),
+        mMaterial, *window_);
 }
 
 void corgi::ui::Rectangle::setColorEasing(const Color&           dest,
                                           easing::EasingEquation equation,
-                                          float                  duration)
+                                          float                  duration
+    )
 {
     mColorEasing       = true;
     mEasingEquation    = equation;

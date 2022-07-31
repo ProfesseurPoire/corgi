@@ -1,7 +1,6 @@
 #pragma once
 
 #include <corgi/components/ColliderComponent.h>
-#include <corgi/ecs/EntityId.h>
 
 namespace corgi
 {
@@ -34,9 +33,9 @@ namespace corgi
 
 		void dimensions(float width, float height, float depth);
 
-		float width()const;
-		float height()const;
-		float depth()const;
+		[[nodiscard]] float width()const;
+		[[nodiscard]] float height()const;
+		[[nodiscard]] float depth()const;
 
 		void width(float v);
 		void height(float v);

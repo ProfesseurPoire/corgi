@@ -17,7 +17,7 @@ void Button::init()
     text_->text("Button");
     text_->mProcessEvent = false;
 
-    on_mouse_drag_ += [&](int x, int y)
+    mouse_drag_event_ += [&](const Mouse& mouse)
     {
         is_pressed_ = true;
     };
@@ -51,16 +51,23 @@ void Button::paint(Renderer& renderer)
         if(is_pressed_)
         {
             if(mMaterial._texture_uniforms.empty())
-                mMaterial.add_texture(*ResourcesCache::get<Texture>("corgi/textures/grey_pressed.tex"));
+                mMaterial.add_texture(
+                    *ResourcesCache::get<Texture>(
+                        "corgi/textures/grey_pressed.tex"));
             else
-                mMaterial.set_texture(0, *ResourcesCache::get<Texture>("corgi/textures/grey_pressed.tex"));
+                mMaterial.set_texture(0, *ResourcesCache::get<Texture>(
+                                          "corgi/textures/grey_pressed.tex"));
         }
         else
         {
             if(mMaterial._texture_uniforms.empty())
-                mMaterial.add_texture(*ResourcesCache::get<Texture>("corgi/textures/grey.tex"));
+                mMaterial.add_texture(
+                    *ResourcesCache::get<Texture>(
+                        "corgi/textures/grey.tex"));
             else
-                mMaterial.set_texture(0, *ResourcesCache::get<Texture>("corgi/textures/grey.tex"));
+                mMaterial.set_texture(
+                    0, *ResourcesCache::get<Texture>(
+                        "corgi/textures/grey.tex"));
         }
     }
     catch(const std::exception& e)
@@ -83,10 +90,14 @@ void Button::paint(Renderer& renderer)
     ns.left_border_   = 10.0f;
     ns.right_border_  = 10.0f;
 
-    ns.left_border_uv_   = static_cast<float>(ns.left_border_) / static_cast<float>(texture->width());
-    ns.right_border_uv_  = static_cast<float>(ns.right_border_) / static_cast<float>(texture->width());
-    ns.top_border_uv_    = static_cast<float>(ns.top_border_) / static_cast<float>(texture->height());
-    ns.bottom_border_uv_ = static_cast<float>(ns.bottom_border_) / static_cast<float>(texture->height());
+    ns.left_border_uv_ =
+        static_cast<float>(ns.left_border_) / static_cast<float>(texture->width());
+    ns.right_border_uv_ =
+        static_cast<float>(ns.right_border_) / static_cast<float>(texture->width());
+    ns.top_border_uv_ =
+        static_cast<float>(ns.top_border_) / static_cast<float>(texture->height());
+    ns.bottom_border_uv_ =
+        static_cast<float>(ns.bottom_border_) / static_cast<float>(texture->height());
 
     mMaterial.set_uniform("offset", real_x(), real_y());
     mMaterial.set_uniform("dimensions", width(), height());
@@ -97,7 +108,8 @@ void Button::paint(Renderer& renderer)
     mMaterial.enable_depth_test(false);
     mMaterial.set_uniform("main_color", 1.0f, 0.0f, 0.0f, 1.0f);
 
-    renderer.window_draw_list().add_mesh(UiUtils::nine_slice_quad(), Matrix(), mMaterial);
+    renderer.window_draw_list().add_mesh(UiUtils::nine_slice_quad(), Matrix(), mMaterial,
+                                         *window_);
 
     if(text_)
     {

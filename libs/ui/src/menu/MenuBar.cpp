@@ -1,12 +1,15 @@
-#include <corgi/main/Game.h>
+#include <corgi/main/Window.h>
 #include <corgi/rendering/texture.h>
 #include <corgi/ui/menu/MenuBar.h>
 #include <corgi/utils/ResourcesCache.h>
+#include <corgi/ui/Image.h>
+#include <corgi/ui/Rectangle.h>
+#include <corgi/ui/Text.h>
 
 using namespace corgi::ui;
 using namespace corgi;
 
-MenuItem* Menu::addMenuItem(const SimpleString& name)
+MenuItem* Menu::addMenuItem(const std::string& name)
 {
     auto* ptr = emplaceBack<MenuItem>(name);
     items_.push_back(ptr);
@@ -54,7 +57,7 @@ void MenuBar::initializeMinimizeButton()
     minimizeButton_->setWidth(-64);
     minimizeButton_->setMarginLeft(-96);
     minimizeButton_->setBottom(0);
-    minimizeButton_->setName("MinimizeButton");
+    minimizeButton_->set_name("MinimizeButton");
 
     minimizeButton_->onMouseEnter() += [=](int, int)
     {
@@ -68,7 +71,7 @@ void MenuBar::initializeMinimizeButton()
 
     minimizeButton_->onMouseClick() += [=](int, int)
     {
-        Game::instance().window().minimize();
+        Window::current_window()->minimize();
     };
 
     minimizeButtonImage_ = minimizeButton_->emplaceBack<ui::Image>();
@@ -88,7 +91,7 @@ void MenuBar::initializeMaximizeButton()
     maximizeButton_->setWidth(-32);
     maximizeButton_->setMarginLeft(-64);
     maximizeButton_->setBottom(0);
-    maximizeButton_->setName("MaximizeButton");
+    maximizeButton_->set_name("MaximizeButton");
 
     maximizeButton_->onMouseEnter() += [=](int, int)
     {
@@ -102,7 +105,7 @@ void MenuBar::initializeMaximizeButton()
 
     maximizeButton_->onMouseClick() += [&](int, int)
     {
-        Game::instance().window().maximize();
+        Window::current_window()->maximize();
         maximizeButton_->disable();
         restoreButton_->enable();
     };
@@ -124,7 +127,7 @@ void MenuBar::initializeCloseButton()
     closeButton_->setWidth(32);
     closeButton_->setMarginLeft(-32);
     closeButton_->setBottom(0);
-    closeButton_->setName("CloseWindowButton");
+    closeButton_->set_name("CloseWindowButton");
 
     closeButton_->onMouseEnter() += [=](int, int)
     {
@@ -138,7 +141,7 @@ void MenuBar::initializeCloseButton()
 
     closeButton_->onMouseClick() += [=](int, int)
     {
-        Game::instance().quit();
+        //Game::instance().quit();
     };
 
     closeButtonImage_ = closeButton_->emplaceBack<ui::Image>();
@@ -167,7 +170,7 @@ void MenuBar::initializeRestoreButton()
     restoreButton_->setWidth(-32);
     restoreButton_->setMarginLeft(-64);
     restoreButton_->setBottom(0);
-    restoreButton_->setName("RestoreButton");
+    restoreButton_->set_name("RestoreButton");
 
     restoreButton_->onMouseEnter() += [=](int, int)
     {
@@ -181,7 +184,7 @@ void MenuBar::initializeRestoreButton()
 
     restoreButton_->onMouseClick() += [=](int, int)
     {
-        Game::instance().window().restore();
+        Window::current_window()->restore();
         maximizeButton_->enable();
         restoreButton_->disable();
     };
@@ -219,26 +222,24 @@ int MenuBar::buttonsWidth() const noexcept
     return closeButton_->width() * 3;
 }
 
-MenuItem::MenuItem(const SimpleString& name)
+MenuItem::MenuItem(const std::string& name)
     : name_(name)
-{
-}
+{}
 
-const SimpleString& MenuItem::name() const noexcept
+const std::string& MenuItem::name() const noexcept
 {
     return name_;
 }
 
-Vector<MenuItem*>& Menu::items()
+std::vector<MenuItem*>& Menu::items()
 {
     return items_;
 }
 
-Menu::Menu(const SimpleString& name, StyleSheet* styleSheet)
+Menu::Menu(const std::string& name, StyleSheet* styleSheet)
     : name_(name)
-    , styleSheet_(styleSheet)
-{
-}
+      , styleSheet_(styleSheet)
+{}
 
 void Menu::init()
 {
@@ -248,9 +249,8 @@ void Menu::init()
 
     menuItemContainers_ = emplaceBack<ui::Widget>();
 
-    menuItemContainers_->onMouseEnter() += [&](int x, int y) {
-
-    };
+    menuItemContainers_->onMouseEnter() += [&](int x, int y)
+        { };
 
     menuItemContainers_->onMouseExit() += [&](int x, int y)
     {
@@ -319,22 +319,21 @@ void Menu::init()
     text_->setFont(ResourcesCache::get<Font>("corgi/fonts/Roboto-Medium.fnt"));
 }
 
-const SimpleString& Menu::name() const noexcept
+const std::string& Menu::name() const noexcept
 {
     return name_;
 }
 
-Menu* MenuBar::addMenu(const SimpleString& menuName)
+Menu* MenuBar::addMenu(const std::string& menuName)
 {
-    menus_.add(emplaceBack<ui::Menu>(menuName));
+    menus_.push_back(emplaceBack<ui::Menu>(menuName));
     resizeMenus();
     return menus_.back();
 }
 
 MenuBar::MenuBar(StyleSheet* styleSheet)
     : styleSheet_(styleSheet)
-{
-}
+{}
 
 void MenuBar::init()
 {

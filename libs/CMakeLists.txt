@@ -1,4 +1,5 @@
 add_subdirectory(test)
+add_subdirectory(math)
 add_subdirectory(containers)
 add_subdirectory(logger)
 add_subdirectory(ui)

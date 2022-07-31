@@ -1,49 +1,50 @@
 #pragma once
 
-#include <corgi/SimpleString.h>
-#include <corgi/containers/Vector.h>
-#include <corgi/ui/Image.h>
-#include <corgi/ui/Rectangle.h>
 #include <corgi/ui/StyleSheet.h>
-#include <corgi/ui/Text.h>
 #include <corgi/ui/Widget.h>
-#include <corgi/utils/Event.h>
+
+#include <string>
+#include <vector>
 
 namespace corgi::ui
 {
+    class Rectangle;
+    class Text;
+    class Image;
+
     class MenuItem : public Widget
     {
     public:
-        MenuItem(const SimpleString& name);
+        MenuItem(const std::string& name);
 
         void init() override;
 
-        [[nodiscard]] const SimpleString& name() const noexcept;
+        [[nodiscard]] const std::string& name() const noexcept;
 
     private:
         ui::Rectangle* background_;
         ui::Text*      text_;
-        SimpleString   name_;
+        std::string   name_;
     };
 
     class Menu : public Widget
     {
     public:
         friend class MenuBar;
-        Menu(const SimpleString& name, StyleSheet* styleSheet = &defaultStyleSheet);
+        Menu(const std::string& name, StyleSheet* styleSheet = &defaultStyleSheet);
 
         void init() override;
 
-        MenuItem* addMenuItem(const SimpleString& name);
+        MenuItem* addMenuItem(const std::string& name);
         void      closeMenu();
 
-        Vector<MenuItem*>& items();
+        std::vector<MenuItem*>& items();
 
-        [[nodiscard]] const SimpleString& name() const noexcept;
+        [[nodiscard]] const std::string& name() const noexcept;
 
     private:
-        Vector<MenuItem*> items_;
-        SimpleString      name_;
+        std::vector<MenuItem*> items_;
+        std::string      name_;
         ui::Rectangle*    background_;
         ui::Text*         text_;
         StyleSheet*       styleSheet_;
@@ -60,7 +61,7 @@ namespace corgi::ui
 
         void init() override;
 
-        Menu* addMenu(const SimpleString& menuName);
+        Menu* addMenu(const std::string& menuName);
 
         /**
          * @brief Returns the width of every combined menu on the left of the menu bar
@@ -89,7 +90,7 @@ namespace corgi::ui
         void initializeMaximizeButton();
         void initializeMinimizeButton();
 
-        Vector<Menu*> menus_;
+        std::vector<Menu*> menus_;
 
         Rectangle*  background_;
         StyleSheet* styleSheet_;

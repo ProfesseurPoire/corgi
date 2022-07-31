@@ -1,7 +1,6 @@
 #pragma once
 
 #include <corgi/components/ColliderComponent.h>
-#include <corgi/ecs/EntityId.h>
 
 namespace corgi
 {
@@ -25,7 +24,7 @@ namespace corgi
         void width(float value);
         void height(float value);
 
-        SharedPtr<Mesh> _edges_mesh;	// 8 
+        std::shared_ptr<Mesh> _edges_mesh;	// 8 
 
         [[nodiscard]] const std::vector<Vec2>& edges()    const noexcept;
         [[nodiscard]] const std::vector<Vec2>& positions()const noexcept;

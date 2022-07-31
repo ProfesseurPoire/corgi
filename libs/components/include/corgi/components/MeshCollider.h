@@ -1,7 +1,6 @@
 #pragma once
 
 #include <corgi/components/ColliderComponent.h>
-#include <corgi/containers/SharedPtr.h>
 
 
 namespace corgi
@@ -18,7 +17,7 @@ namespace corgi
 	{
 	public:
 		
-		void mesh(SharedPtr<Mesh> m);
+		void mesh(std::shared_ptr<Mesh> m);
 
 	};
 }

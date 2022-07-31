@@ -2,7 +2,7 @@
 
 using namespace corgi;
 
-static SharedPtr<Mesh> nine_slice_quad_mesh{ nullptr };
+static std::shared_ptr<Mesh> nine_slice_quad_mesh {nullptr};
 
 void UiUtils::release_nineslice_mesh()
 {

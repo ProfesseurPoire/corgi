@@ -112,24 +112,24 @@ void DialogWindow::initializeTitle()
     titleWidget_->setText("Hello There");
     titleWidget_->setColor(styleSheet_->dialog().titleTextColor());
 
-    titleWidget_->on_mouse_drag_begin() += [&](int x, int y)
+    titleWidget_->mouse_drag_start_event() += [&](const Mouse& mouse)
     {
         if(!isResizing)
         {
-            mouseDragXPosition_ = x;
-            mouseDragYPosition_ = y;
+            mouseDragXPosition_ = mouse.x();
+            mouseDragYPosition_ = mouse.y();
 
             positionAtStartDragX_ = real_x();
             positionAtStartDragY_ = real_y();
         }
     };
 
-    titleWidget_->on_mouse_drag() += [&](int x, int y)
+    titleWidget_->mouse_drag_event() += [&](const Mouse& mouse)
     {
         if(!isResizing)
         {
-            setLeft(positionAtStartDragX_ + (x - mouseDragXPosition_));
-            setTop(positionAtStartDragY_ + (y - mouseDragYPosition_));
+            setLeft(positionAtStartDragX_ + (mouse.x() - mouseDragXPosition_));
+            setTop(positionAtStartDragY_ + (mouse.y() - mouseDragYPosition_));
         }
     };
 }

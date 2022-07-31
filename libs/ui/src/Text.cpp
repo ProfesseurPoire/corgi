@@ -38,6 +38,8 @@ float ui::Text::text_top_distance() const noexcept
         case VerticalAlignment::Down:
             return height() - text_height;
     }
+
+    return 0;
 }
 
 float ui::Text::text_height() const
@@ -61,7 +63,7 @@ int ui::Text::selectedLine(int x, int y) const
     return -1;
 }
 
-ui::Text::Text(const SimpleString& txt)
+ui::Text::Text(const std::string& txt)
 {
     _text.scaling = 1.0f;
 
@@ -134,6 +136,7 @@ float corgi::ui::Text::distanceLeft(int line)
         case HorizontalAlignment::Right:
             return (width() - _text.lines_width[line]);
     }
+    return 0.0f;
 }
 
 void corgi::ui::Text::setFont(const Font& font)
@@ -181,12 +184,12 @@ void corgi::ui::Text::setFontSize(int size)
         mMaterial.set_texture(0, *conf.texture.get());
 }
 
-const SimpleString& corgi::ui::Text::text() const
+const std::string& corgi::ui::Text::text() const
 {
     return _text.text;
 }
 
-void corgi::ui::Text::text(const SimpleString& txt)
+void corgi::ui::Text::text(const std::string& txt)
 {
     auto conf =
         font_view.font_->configurations_[font_view.current_configuration_index_].get();
@@ -198,12 +201,12 @@ void corgi::ui::Text::text(const SimpleString& txt)
     _text.setText(shapedGlyphs_);
 }
 
-void ui::Text::setShortenedLineString(const SimpleString& text)
+void ui::Text::setShortenedLineString(const std::string& text)
 {
     _text.dimensions.x = width();
     _text.dimensions.y = height();
 
-    SimpleString textCopy = text;
+    std::string textCopy = text;
 
     // We check the actual size of the text before hand
     auto       textWidth       = _text.textWidth(text);
@@ -217,7 +220,8 @@ void ui::Text::setShortenedLineString(const SimpleString& text)
 
         while(textWidth + suspensionPointWidth > width())
         {
-            textCopy.remove(textCopy.size() - 1);
+            // TODO : Fix that for std string
+            //textCopy.remove(textCopy.size() - 1);
             textWidth -=
                 charactersWidth[charactersWidth.size() - 1 - charactersRemoved++];
         }
@@ -227,7 +231,7 @@ void ui::Text::setShortenedLineString(const SimpleString& text)
     setText(text);
 }
 
-void ui::Text::setText(const SimpleString& text)
+void ui::Text::setText(const std::string& text)
 {
     auto conf =
         font_view.font_->configurations_[font_view.current_configuration_index_].get();
@@ -240,7 +244,7 @@ void ui::Text::setText(const SimpleString& text)
     _text.setText(shapedGlyphs_);
 }
 
-const corgi::Vector<corgi::utils::text::ShapedGlyph>&
+const std::vector<corgi::utils::text::ShapedGlyph>&
 ui::Text::shapedGlyphs() const noexcept
 {
     return shapedGlyphs_;
@@ -259,9 +263,10 @@ float ui::Text::leftOffset() const noexcept
         case HorizontalAlignment::Right:
             return (width() - textWidth(actualText_));
     }
+    return 0.0f;
 }
 
-float ui::Text::textWidth(const SimpleString& text) const
+float ui::Text::textWidth(const std::string& text) const
 {
     return _text.textWidth(text);
 }
@@ -350,7 +355,7 @@ void corgi::ui::Text::paint(Renderer& renderer)
                                          Matrix::translation(corgi::math::round(real_x()),
                                                              corgi::math::round(real_y()),
                                                              depth_),
-                                         mMaterial);
+                                         mMaterial, *window_);
 }
 
 void ui::Text::setDepth(float depth)

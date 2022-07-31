@@ -3,6 +3,7 @@
 #include <corgi/math/Collisions.h>
 #include <corgi/ecs/Entity.h>
 #include <corgi/components/Transform.h>
+#include <corgi/resources/Mesh.h>
 
 #include <assert.h>
 

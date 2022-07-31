@@ -8,69 +8,69 @@
 
 namespace corgi::ui
 {
-    class SimpleButton;
-    class VerticalLayout;
+class SimpleButton;
+class VerticalLayout;
 
-    /**
+/**
      * @brief   Widget displaying a file in the FileDialog
      *          
      *          Contains a FileInfo object with informations about the
      *          file the item is displaying. Display an icon and the file's name
      */
-    class FileItem : public Widget
-    {
-        friend class FileDialog;
+class FileItem : public Widget
+{
+    friend class FileDialog;
 
-    public:
-        FileItem(corgi::filesystem::FileInfo fileInfo);
+public:
+    FileItem(corgi::filesystem::FileInfo fileInfo);
 
-        /**
+    /**
          * @brief   Initialize the fileItem and its widgets
          */
-        void init() override;
+    void init() override;
 
-        /**
+    /**
          * @brief   Initialize the icon used
          * 
          *          We use different icons depending on the type of file
          *          (textual, folders, images etc)
          */
-        void initIcon();
+    void initIcon();
 
-        /**
+    /**
          * @brief   Returns the fileInfo displayed by the fileItem
          * 
          * @return  const corgi::filesystem::FileInfo& 
          */
-        [[nodiscard]] const corgi::filesystem::FileInfo& fileInfo() const noexcept;
+    [[nodiscard]] const corgi::filesystem::FileInfo& fileInfo() const noexcept;
 
-    private:
-        /**
+private:
+    /**
          * @brief   Rectangle used as a text background
          */
-        ui::Rectangle* textBackground_ = nullptr;
-
-        /**
-         * @brief True if the item is selected
-         */
-        bool isItemSelected_ = false;
-
-        /**
-         * @brief Stores informations about the file
-         */
-        corgi::filesystem::FileInfo fileInfo_;
-    };
+    ui::Rectangle* textBackground_ = nullptr;
 
     /**
+         * @brief True if the item is selected
+         */
+    bool isItemSelected_ = false;
+
+    /**
+         * @brief Stores informations about the file
+         */
+    corgi::filesystem::FileInfo fileInfo_;
+};
+
+/**
      * @brief   Modal Dialog Window used to select a file from disk
      * 
      *          To get back the selected file after pressing ok, use the 
      *          onFileSelection event 
      */
-    class FileDialog : public DialogWindow
-    {
-    public:
-        /**
+class FileDialog : public DialogWindow
+{
+public:
+    /**
          * @brief Construct a new File Dialog object
          * 
          * @param folder        Display the content of this folder when the dialog is
@@ -79,90 +79,89 @@ namespace corgi::ui
          * @param styleSheet    Contains rules about the widget's appearance. 
          *                      Use the default StyleSheet if non is specified by the user
          */
-        FileDialog(const SimpleString& folder,
-                   StyleSheet&         styleSheet = defaultStyleSheet);
+    FileDialog(const std::string& folder, StyleSheet& styleSheet = defaultStyleSheet);
 
-        /**
+    /**
          * @brief The initialize function actually construct the widgets
          * 
          */
-        void init() override;
+    void init() override;
 
-        /**
+    /**
          * @brief Initialize the fileItems
          * 
          * @param rootFolder 
          */
-        void initFiles(const SimpleString& rootFolder);
+    void initFiles(const std::string& rootFolder);
 
-        /**
+    /**
          * @brief Returns the event triggered when clicking ok button after selecting a file
          * 
          * @return Event<SimpleString>& 
          */
-        [[nodiscard]] Event<SimpleString>& onFileSelection();
+    [[nodiscard]] Event<std::string>& onFileSelection();
 
-    private:
-        // Functions
+private:
+    // Functions
 
-        /**
+    /**
          * @brief   Initialize the ok button
          * 
          *          Ok button is greyout if no fileItem is currently selected
          */
-        void initOkButton();
+    void initOkButton();
 
-        /**
+    /**
          * @brief Initialize the buttons widgets
          */
-        void initButtons();
+    void initButtons();
 
-        /**
+    /**
          * @brief Initialize the cancel button
          */
-        void initCancelButton();
+    void initCancelButton();
 
-        // Variables
+    // Variables
 
-        /**
-         * @brief Exit the current fileDialog
-         */
-        SimpleButton* cancelButton_ = nullptr;
+    /**
+     * @brief Exit the current fileDialog
+     */
+    SimpleButton* cancelButton_ = nullptr;
 
-        /**
-         * @brief Greyed out when no item is selected. Triggers onFileSelection event
-         */
-        SimpleButton* okButton_ = nullptr;
+    /**
+     * @brief Greyed out when no item is selected. Triggers onFileSelection event
+     */
+    SimpleButton* okButton_ = nullptr;
 
-        /**
-         * @brief   Layout positionning the FileItem
-         */
-        ui::VerticalLayout* flowLayout_ = nullptr;
+    /**
+     * @brief   Layout positionning the FileItem
+     */
+    ui::VerticalLayout* flowLayout_ = nullptr;
 
-        /**
-         * @brief   Image representing the 
-         */
-        ui::Image* upFolderImage_ = nullptr;
+    /**
+     * @brief   Image representing the 
+     */
+    ui::Image* upFolderImage_ = nullptr;
 
-        /**
-         * @brief   Textbox displaying the current folder
-         */
-        ui::TextBox* currentFolderTextBox_ = nullptr;
+    /**
+     * @brief   Textbox displaying the current folder
+     */
+    ui::TextBox* currentFolderTextBox_ = nullptr;
 
-        /**
-         * @brief   Saves the folder we're currently in
-         */
-        SimpleString currentFolder;
+    /**
+     * @brief   Saves the folder we're currently in
+     */
+    std::string currentFolder;
 
-        /**
-         * @brief Pointer to the item currently selected
-         */
-        FileItem* selectedItem_ = nullptr;
+    /**
+     * @brief Pointer to the item currently selected
+     */
+    FileItem* selectedItem_ = nullptr;
 
-        /**
-         * @brief   Event called when the file dialog is closed that send the 
-         *          file that has been selected
-         */
-        Event<SimpleString> onFileSelection_;
-    };
+    /**
+     * @brief   Event called when the file dialog is closed that send the 
+     *          file that has been selected
+     */
+    Event<std::string> onFileSelection_;
+};
 }    // namespace corgi::ui

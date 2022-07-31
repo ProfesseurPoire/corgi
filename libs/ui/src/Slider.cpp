@@ -1,4 +1,5 @@
 #include <corgi/main/Cursor.h>
+#include <corgi/main/Game.h>
 #include <corgi/math/MathUtils.h>
 #include <corgi/systems/SpriteRendererSystem.h>
 #include <corgi/ui/Slider.h>
@@ -42,11 +43,13 @@ corgi::Event<float>& Slider::onValueChanged()
     return mOnValueChanged;
 }
 
-Slider::Slider() {}
+Slider::Slider()
+{}
 
 void Slider::init()
 {
-    mMaterial  = *ResourcesCache::get<Material>("corgi/materials/ui/uiRectangle.mat");
+    mMaterial = *ResourcesCache::get<Material>(
+        "corgi/materials/ui/uiRectangle.mat");
     mContainer = &emplace_back<Rectangle>();
     mHandle    = &emplace_back<Rectangle>();
 
@@ -62,47 +65,49 @@ void Slider::init()
         mHandle->setColor(Color(0.4f, 0.4f, 0.5f, 1.0f));
     };
 
-    mHandle->on_mouse_drag_begin() += [&](int x, int y)
+    mHandle->mouse_drag_start_event() += [&](const Mouse& mouse)
     {
         switch(mOrientation)
         {
-            case Orientation::Horizontal:
-                mDragOffset = x - mHandle->real_x();
+            case Orientation::Horizontal :
+                mDragOffset = mouse.x() - mHandle->real_x();
                 break;
-            case Orientation::Vertical:
-                mDragOffset = y - mHandle->real_y();
+            case Orientation::Vertical :
+                mDragOffset = mouse.y() - mHandle->real_y();
                 break;
         }
         mHandle->setColor(Color(0.2f, 0.2f, 0.30f, 1.0f));
     };
 
-    mHandle->on_mouse_drag_end() += [&](int x, int y)
+    mHandle->mouse_drag_end_event() += [&](const Mouse& mouse)
     {
         mHandle->setColor(Color(0.4f, 0.4f, 0.5f, 1.0f));
     };
 
-    mHandle->on_mouse_drag() += [&](int x, int y)
+    mHandle->mouse_drag_event() += [&](const Mouse& mouse)
     {
         auto previousValue = mCurrentValue;
 
         switch(mOrientation)
         {
-            case Orientation::Horizontal:
-                mCurrentValue =
-                    corgi::math::clamp((((float(x) - mDragOffset + mHandle->width() / 2.0f) - mContainer->real_x()) /
-                                        mContainer->width()) *
-                                               (mMaxValue - mMinValue) +
-                                           mMinValue,
-                                       mMinValue, mMaxValue);
+            case Orientation::Horizontal :
+                mCurrentValue = corgi::math::clamp(
+                    (((float(mouse.x()) - mDragOffset + mHandle->width() / 2.0f) -
+                      mContainer->real_x()) /
+                     mContainer->width()) *
+                    (mMaxValue - mMinValue) +
+                    mMinValue,
+                    mMinValue, mMaxValue);
                 break;
-            case Orientation::Vertical:
+            case Orientation::Vertical :
 
-                mCurrentValue =
-                    corgi::math::clamp((((float(y) - mDragOffset + mHandle->height() / 2.0f) - mContainer->real_y()) /
-                                        mContainer->height()) *
-                                               (mMaxValue - mMinValue) +
-                                           mMinValue,
-                                       mMinValue, mMaxValue);
+                mCurrentValue = corgi::math::clamp(
+                    (((float(mouse.y()) - mDragOffset + mHandle->height() / 2.0f) -
+                      mContainer->real_y()) /
+                     mContainer->height()) *
+                    (mMaxValue - mMinValue) +
+                    mMinValue,
+                    mMinValue, mMaxValue);
                 break;
         }
 
@@ -137,7 +142,7 @@ void Slider::paint(Renderer& SpriteRendererSystem)
 
     switch(mOrientation)
     {
-        case Orientation::Horizontal:
+        case Orientation::Horizontal :
 
             mContainer->x(0);
             mContainer->setRight(0);
@@ -149,12 +154,13 @@ void Slider::paint(Renderer& SpriteRendererSystem)
             mHandle->setHeight(mContainerSize + 20.0f);
             mHandle->setWidth(20);
 
-            offset = (mCurrentValue - mMinValue) / (mMaxValue - mMinValue) * mContainer->width();
+            offset = (mCurrentValue - mMinValue) / (mMaxValue - mMinValue) *
+                     mContainer->width();
             mHandle->x(offset - mHandle->width() / 2.0f);
 
             break;
 
-        case Orientation::Vertical:
+        case Orientation::Vertical :
 
             mContainer->y(0);
             mContainer->setBottom(0);
@@ -166,7 +172,8 @@ void Slider::paint(Renderer& SpriteRendererSystem)
             mHandle->setWidth(mContainerSize + 20.0f);
 
             mHandle->x((width() / 2.f) - (mHandle->width() / 2.0f));
-            offset = (mCurrentValue - mMinValue) / (mMaxValue - mMinValue) * mContainer->height();
+            offset = (mCurrentValue - mMinValue) / (mMaxValue - mMinValue) *
+                     mContainer->height();
             mHandle->y(offset - mHandle->height() / 2.0f);
             break;
 

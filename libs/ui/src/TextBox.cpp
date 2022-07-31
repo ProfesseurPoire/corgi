@@ -82,7 +82,7 @@ void TextBox::initializeSelectionRectangle()
 void TextBox::initializeRectangle()
 {
     mRectangle = &emplace_back<corgi::ui::Rectangle>();
-    mRectangle->setName("TextBox Background Rectangle");
+    mRectangle->set_name("TextBox Background Rectangle");
 
     mRectangle->setAnchorsToFillParentSpace();
     mRectangle->setRadius(10);
@@ -123,7 +123,7 @@ void TextBox::setText(const std::string& str)
     }
 }
 
-corgi::SimpleString TextBox::text()
+std::string TextBox::text()
 {
     return mText.c_str();
 }
@@ -442,17 +442,17 @@ void TextBox::initializeText()
         cursorIndexPosition_ = findCursorIndex(mouse.x(), mouse.y());
     };
 
-    uiText_->on_mouse_drag_begin() += [&](int x, int y)
+    uiText_->mouse_drag_start_event() += [&](const Mouse& mouse)
     {
-        startSelectionIndex_ = findCursorIndex(x, y);
+        startSelectionIndex_ = findCursorIndex(mouse.x(), mouse.y());
     };
 
-    uiText_->on_mouse_drag() += [&](int x, int y)
+    uiText_->mouse_drag_event() += [&](const Mouse& mouse)
     {
-        createSelectionRectangles(x, y);
+        createSelectionRectangles(mouse.x(), mouse.y());
     };
 
-    uiText_->on_mouse_drag_end() += [&](int x, int y)
+    uiText_->mouse_drag_end_event() += [&](const Mouse& mouse)
     {
         //selection_rectangle_->disable();
     };
@@ -529,7 +529,7 @@ void TextBox::update(float elapsedTime)
             {
                 if(cursorIndexPosition_ > 0)
                 {
-                    SimpleString s = mText.c_str();
+                    std::string s = mText.c_str();
 
                     auto textOffset =
                         uiText_->shapedGlyphs()[cursorIndexPosition_ - 1].textOffset;
@@ -538,7 +538,7 @@ void TextBox::update(float elapsedTime)
                         uiText_->shapedGlyphs()[cursorIndexPosition_ - 1]
                             .characters.size();
 
-                    s.remove(textOffset);
+                    s.erase(s.begin() + textOffset);
                     mText          = s.c_str();
                     updateTextMesh = true;
 

@@ -1,12 +1,17 @@
+#include "corgi/systems/UISystem.h"
+
 #include <corgi/main/Cursor.h>
+#include <corgi/main/Window.h>
 #include <corgi/rendering/texture.h>
 #include <corgi/ui/Checkbox.h>
 #include <corgi/ui/Image.h>
 #include <corgi/utils/ResourcesCache.h>
+#include <corgi/main/Game.h>
 
 using namespace corgi::ui;
 
-Checkbox::Checkbox() {}
+Checkbox::Checkbox()
+{}
 
 void Checkbox::init()
 {
@@ -50,19 +55,19 @@ void Checkbox::paint(Renderer& renderer)
 {
     if(mIsIndeterminated)
     {
-        mImage->set_image(
-            *ResourcesCache::get<Texture>("corgi/textures/CheckboxIndeterminate.tex"));
+        mImage->set_image(*ResourcesCache::get<Texture>(
+            "corgi/textures/CheckboxIndeterminate.tex"));
         return;
     }
     if(mIsChecked)
     {
-        mImage->set_image(
-            *ResourcesCache::get<Texture>("corgi/textures/CheckboxChecked.tex"));
+        mImage->set_image(*ResourcesCache::get<Texture>(
+            "corgi/textures/CheckboxChecked.tex"));
     }
     else
     {
-        mImage->set_image(
-            *ResourcesCache::get<Texture>("corgi/textures/CheckboxUnChecked.tex"));
+        mImage->set_image(*ResourcesCache::get<Texture>(
+            "corgi/textures/CheckboxUnChecked.tex"));
     }
 }
 

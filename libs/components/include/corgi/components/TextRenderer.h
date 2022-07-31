@@ -1,17 +1,16 @@
 #pragma once
 
-#include <corgi/SimpleString.h>
-#include <corgi/containers/SharedPtr.h>
-
 #include <corgi/ecs/Component.h>
-#include <corgi/ecs/EntityId.h>
-#include <corgi/math/Vec3.h>
-#include <corgi/components/MeshRenderer.h>
 #include <corgi/ecs/ComponentPool.h>
+#include <memory>
+#include <string>
 
 namespace corgi
 {
 class Font;
+class MeshRenderer;
+class Material;
+class Mesh;
 
 class TextRenderer : public Component
 {
@@ -39,14 +38,21 @@ public:
 	void update_mesh();
 
 	Material& material();
-	corgi::SharedPtr<Mesh> mesh();
+	std::shared_ptr<Mesh> mesh();
 
 	// Variables
 
 	float               scaling = 1.0f;
-	SimpleString         text;
+	std::string         text;
 	Font*               font;
-	Vec3                offset;
+
+    struct
+    {
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
+    } offset;
+
 	HorizontalAlignment alignment = HorizontalAlignment::Left;
 
 private:

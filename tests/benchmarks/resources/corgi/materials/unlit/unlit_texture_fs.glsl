@@ -18,11 +18,14 @@ void main()
 
 	if(use_flat_color ==1 )
 	{
-		color		= flat_color;
+		vec4 newColor = flat_color;
+
+		newColor.w	  = texture( main_texture, uv).a*flat_color.a;
+		color = newColor;
 	}
 	else
 	{
 		color		= texture( main_texture, uv).rgba;
-		color.a = color.a*alpha;
+		color.a     = color.a*alpha;
 	}
 }

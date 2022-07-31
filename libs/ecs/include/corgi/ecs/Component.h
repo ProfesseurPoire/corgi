@@ -48,5 +48,4 @@ namespace corgi
 		// To remind me there's 3 unused bytes and to remove c4820 warning
 		bool padding[3];
 	};
-
 }

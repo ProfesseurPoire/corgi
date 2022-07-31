@@ -1,11 +1,12 @@
 #include <corgi/components/BoxCollider2D.h>
+#include <corgi/resources/Mesh.h>
 
 namespace corgi
 {
     BoxCollider2D::BoxCollider2D()
     {
-        _mesh       = corgi::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
-    	_edges_mesh = corgi::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
+        _mesh       = std::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
+    	_edges_mesh = std::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
     	
         build_box();
     }
@@ -15,8 +16,8 @@ namespace corgi
 			_width(width),
 			_height(height)
     {
-	    _mesh       = corgi::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
-    	_edges_mesh = corgi::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
+	    _mesh       = std::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
+    	_edges_mesh = std::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
         build_box();
     }
 
@@ -25,8 +26,8 @@ namespace corgi
 		_width(static_cast<float>(width)),
 		_height(static_cast<float>(height))
     {
-        _mesh = corgi::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
-        _edges_mesh = corgi::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
+        _mesh = std::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
+        _edges_mesh = std::make_shared<Mesh>(std::initializer_list<VertexAttribute>({ {0, 0, 3} }));
         build_box();
     }
 

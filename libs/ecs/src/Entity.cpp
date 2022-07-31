@@ -5,6 +5,9 @@
 
 #include "corgi/ecs/Component.h"
 
+#include <iterator>
+#include <stdexcept>
+
 namespace corgi
 {
 	Entity::Entity(EntityId id, Scene& scene, const char* name) :
@@ -183,7 +186,7 @@ namespace corgi
 		{
 			if(children_[i]==e)
 			{
-				children_.remove_at(i);
+                children_.erase(children_.begin()+i);
 			}
 		}
 
@@ -302,12 +305,12 @@ namespace corgi
 		scene_->component_maps().get(index)->remove(_id);
 	}
 
-	const Vector<RefEntity>& Entity::children()const noexcept
+	const std::vector<RefEntity>& Entity::children()const noexcept
 	{
 		return children_;
 	}
 
-	Vector<RefEntity>& Entity::children() noexcept
+	std::vector<RefEntity>& Entity::children() noexcept
 	{
 		return children_;
 	}
