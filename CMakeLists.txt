@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.13.0)
 
 project(CorgiEngine LANGUAGES CXX VERSION 1.0.0)
 
+include(conan/conanbuildinfo.cmake)
+conan_basic_setup()
+
 option(BUILD_TESTS "Build the tests" ON)
 
 if(BUILD_TESTS)
@@ -17,7 +20,6 @@ add_subdirectory(include/corgi)
 add_subdirectory(libs)
 add_subdirectory(libs/components/src)
 add_subdirectory(libs/components/include/corgi/components)
-
 
 target_precompile_headers(${PROJECT_NAME}
     PUBLIC
@@ -69,7 +71,7 @@ endif()
 # Link Libraries
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CONAN_LIBS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC 
+target_link_libraries(${PROJECT_NAME} PUBLIC
     corgi-ecs
     corgi-math
     corgi-filesystem
@@ -78,7 +80,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     CorgiLogger
     RapidJson
     CorgiUtils)
-
 
 if(MSVC)
     target_link_libraries(${PROJECT_NAME} PUBLIC opengl32)

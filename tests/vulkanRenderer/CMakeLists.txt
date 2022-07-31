@@ -25,7 +25,7 @@ endif()
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD # Adds a post build event to the given target
     COMMAND ${CMAKE_COMMAND} -E copy_directory # Executes the copy directory command
     "${PROJECT_SOURCE_DIR}/shaders"
-    $<TARGET_FILE_DIR:FrogKnight>/shaders)
+    $<TARGET_FILE_DIR:vulkanRenderer>/shaders)
 
 if(UNIX)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
