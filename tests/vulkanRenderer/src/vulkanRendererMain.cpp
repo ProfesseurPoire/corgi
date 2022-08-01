@@ -1,4 +1,6 @@
 #define VK_USE_PLATFORM_WIN32_KHR
+#include "PhysicalDevice.h"
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
 #include <SDL2/SDL_vulkan.h>
@@ -99,74 +101,6 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device)
     }
 
     return requiredExtensions.empty();
-}
-
-/**
- * @brief   For now we simply pick the first discrete GPU
- * 
- *          There's probably way better strategy to find the "best" gpu but that'll do
- *          for now
- * 
- * @param physical_devices 
- * @return VkPhysicalDevice 
- */
-VkPhysicalDevice
-select_best_physical_device(const std::vector<VkPhysicalDevice>& physical_devices)
-{
-    for(auto& physical_device : physical_devices)
-    {
-        VkPhysicalDeviceProperties deviceProperties;
-        VkPhysicalDeviceFeatures   deviceFeatures;
-        vkGetPhysicalDeviceProperties(physical_device, &deviceProperties);
-        vkGetPhysicalDeviceFeatures(physical_device, &deviceFeatures);
-
-        if(deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-        {
-            if(!checkDeviceExtensionSupport(physical_device))
-            {
-                throw std::runtime_error("Physical device has no swapchain support");
-            }
-            physicalDevice = physical_device;
-            return physical_device;
-        }
-    }
-    return nullptr;
-}
-
-/**
- * @brief Return a list of VkPhysicalDevice (GPU) found by Vulkan
- */
-std::vector<VkPhysicalDevice> get_physical_devices()
-{
-    // We first ask vulkan how many device there are
-    uint32_t device_count = 0;
-    vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
-
-    if(device_count == 0)
-    {
-        throw std::runtime_error("No GPU found by Vulkan. Application will close");
-    }
-    std::vector<VkPhysicalDevice> devices(device_count);
-    vkEnumeratePhysicalDevices(instance, &device_count, devices.data());
-    return devices;
-}
-
-void print_physical_devices(const std::vector<VkPhysicalDevice>& physical_devices)
-{
-    std::cout << "Physical Devices \n";
-    for(const auto& physical_device : physical_devices)
-    {
-        VkPhysicalDeviceProperties deviceProperties;
-        VkPhysicalDeviceFeatures   deviceFeatures;
-        vkGetPhysicalDeviceProperties(physical_device, &deviceProperties);
-        vkGetPhysicalDeviceFeatures(physical_device, &deviceFeatures);
-
-        std::cout << "\t" << deviceProperties.deviceName << "\n";
-        std::cout << "\t\t" << deviceProperties.apiVersion << "\n";
-        std::cout << "\t\t" << deviceProperties.driverVersion << "\n";
-        std::cout << "\t\t" << deviceProperties.vendorID << "\n";
-    }
-    std::cout.flush();
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -526,7 +460,7 @@ void create_image_views()
         createInfo.sType                       = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         createInfo.image                       = swapchain.images[i];
         createInfo.viewType                    = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format                      = swapchain.surface_format.format;
+        createInfo.format                      = swapchain.create_info.imageFormat;
         createInfo.components.r                = VK_COMPONENT_SWIZZLE_IDENTITY;
         createInfo.components.g                = VK_COMPONENT_SWIZZLE_IDENTITY;
         createInfo.components.b                = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -548,7 +482,7 @@ void create_image_views()
 void create_render_pass()
 {
     VkAttachmentDescription colorAttachment {};
-    colorAttachment.format  = swapchain.surface_format.format;
+    colorAttachment.format  = swapchain.create_info.imageFormat;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 
     colorAttachment.loadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -652,14 +586,14 @@ void create_graphic_pipeline()
     VkViewport viewport {};
     viewport.x        = 0.0f;
     viewport.y        = 0.0f;
-    viewport.width    = (float)swapchain.extent.width;
-    viewport.height   = (float)swapchain.extent.height;
+    viewport.width    = (float)swapchain.create_info.imageExtent.width;
+    viewport.height   = (float)swapchain.create_info.imageExtent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor {};
     scissor.offset = {0, 0};
-    scissor.extent = swapchain.extent;
+    scissor.extent = swapchain.create_info.imageExtent;
 
     VkPipelineViewportStateCreateInfo viewportState {};
     viewportState.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -768,8 +702,8 @@ void create_framebuffers()
         framebufferInfo.renderPass      = renderPass;
         framebufferInfo.attachmentCount = 1;
         framebufferInfo.pAttachments    = attachments;
-        framebufferInfo.width           = swapchain.extent.width;
-        framebufferInfo.height          = swapchain.extent.height;
+        framebufferInfo.width           = swapchain.create_info.imageExtent.width;
+        framebufferInfo.height          = swapchain.create_info.imageExtent.height;
         framebufferInfo.layers          = 1;
 
         if(vkCreateFramebuffer(device, &framebufferInfo, nullptr,
@@ -797,7 +731,7 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
     renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
 
     renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = swapchain.extent;
+    renderPassInfo.renderArea.extent = swapchain.create_info.imageExtent;
 
     VkClearValue clearColor        = {{{0.0f, 1.0f, 0.0f, 1.0f}}};
     renderPassInfo.clearValueCount = 1;
@@ -810,15 +744,15 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
     VkViewport viewport {};
     viewport.x        = 0.0f;
     viewport.y        = 0.0f;
-    viewport.width    = static_cast<float>(swapchain.extent.width);
-    viewport.height   = static_cast<float>(swapchain.extent.height);
+    viewport.width    = static_cast<float>(swapchain.create_info.imageExtent.width);
+    viewport.height   = static_cast<float>(swapchain.create_info.imageExtent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
     VkRect2D scissor {};
     scissor.offset = {0, 0};
-    scissor.extent = swapchain.extent;
+    scissor.extent = swapchain.create_info.imageExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
     vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
@@ -916,8 +850,14 @@ void create_vulkan_instance()
 
     setup_debugger();
 
-    auto physical_devices = get_physical_devices();
-    print_physical_devices(physical_devices);
+    auto physical_devices = PhysicalDevice::get_physical_devices(instance);
+
+    std::cout << "Physical Devices\n";
+    for(const auto& physical_device : physical_devices)
+    {
+        physical_device.print();
+    }
+
     auto physical_device = select_best_physical_device(physical_devices);
 
     create_surface();
@@ -933,8 +873,8 @@ void create_vulkan_instance()
 
     create_vulkan_device(physical_device, graphic_queue_index);
 
-    swapchain_initialize(&swapchain, physicalDevice, device, surface, window,
-                         graphic_family_index, present_family_index);
+    swapchain.initialize(physicalDevice, device, surface, window, graphic_family_index,
+                         present_family_index);
 
     create_image_views();
     create_render_pass();

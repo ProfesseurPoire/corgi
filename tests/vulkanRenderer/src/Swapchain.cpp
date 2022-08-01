@@ -7,7 +7,7 @@ void Swapchain::finalize(VkDevice device)
     vkDestroySwapchainKHR(device, swapchain, nullptr);
 }
 
-/**
+/*!
  * @brief Define how the color is coded on the swapchain
  * 
  * @param availableFormats 
@@ -101,25 +101,41 @@ swapchain_get_surface_formats(VkPhysicalDevice physical_device, VkSurfaceKHR sur
     return formats;
 }
 
-void swapchain_initialize(Swapchain*              swapchain,
-                          VkPhysicalDevice        physical_device,
-                          VkDevice                device,
-                          VkSurfaceKHR            surface,
-                          SDL_Window*             window,
-                          std::optional<unsigned> graphic_family_index,
-                          std::optional<unsigned> present_family_index)
+void Swapchain::initialize(VkPhysicalDevice        physical_device,
+                           VkDevice                device,
+                           VkSurfaceKHR            surface,
+                           SDL_Window*             window,
+                           std::optional<unsigned> graphic_family_index,
+                           std::optional<unsigned> present_family_index)
 {
-    auto capabilities  = swapchain_get_capabilities(surface, physical_device);
-    auto formats       = swapchain_get_surface_formats(physical_device, surface);
+    auto capabilities = swapchain_get_capabilities(surface, physical_device);
+    auto formats      = swapchain_get_surface_formats(physical_device, surface);
+
+    // How the swapchains images are consumed by the monitor.
+    // * VK_PRESENT_MODE_IMMEDIATE_KHR
+    //      Specifies that the presentation engine does not wait for a vertical blanking
+    //      period to update the current image
+    // * VK_PRESENT_MODE_MAILBOX_KHR
+    //      Specifies that the presentation engine waits for the next vertical blanking
+    //      period to update the current image. No tearing
+    //
+    //      Ok so, this part was hard to understand, but basically, the GPU only stores
+    //      1 image, and a new request will replace that image.
+    //
+    //      And at each vertical blanking period, one request is removed from
+    //      the queue and processed
+    //
+    // VK_PRESENT_MODE_FIFO_KHR
+    // VK_PRESENT_MODE_FIFO_RELAXED_KHR
     auto present_modes = swapchain_get_present_modes(physical_device, surface);
 
     // We abort the program if we have no formats or no present mode
     if(formats.empty() || present_modes.empty())
         abort();
 
-    swapchain->surface_format = chooseSwapSurfaceFormat(formats);
-    swapchain->present_mode   = chooseSwapPresentMode(present_modes);
-    swapchain->extent = swapchain_choose_swap_extent(swapchain, window, capabilities);
+    auto surface_format = chooseSwapSurfaceFormat(formats);
+    auto present_mode   = chooseSwapPresentMode(present_modes);
+    auto extent         = swapchain_choose_swap_extent(this, window, capabilities);
 
     uint32_t imageCount = capabilities.minImageCount + 1;
 
@@ -128,49 +144,47 @@ void swapchain_initialize(Swapchain*              swapchain,
         imageCount = capabilities.maxImageCount;
     }
 
-    VkSwapchainCreateInfoKHR createInfo {};
-    createInfo.sType   = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = surface;
+    create_info         = VkSwapchainCreateInfoKHR();
+    create_info.sType   = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    create_info.surface = surface;
 
-    createInfo.minImageCount    = imageCount;
-    createInfo.imageFormat      = swapchain->surface_format.format;
-    createInfo.imageColorSpace  = swapchain->surface_format.colorSpace;
-    createInfo.imageExtent      = swapchain->extent;
-    createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    create_info.minImageCount    = imageCount;
+    create_info.imageFormat      = surface_format.format;
+    create_info.imageColorSpace  = surface_format.colorSpace;
+    create_info.imageExtent      = extent;
+    create_info.imageArrayLayers = 1;
+    create_info.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
     unsigned queueFamilyIndices[] = {graphic_family_index.value(),
                                      present_family_index.value()};
 
     if(graphic_family_index != present_family_index)
     {
-        createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
-        createInfo.queueFamilyIndexCount = 2;
-        createInfo.pQueueFamilyIndices   = queueFamilyIndices;
+        create_info.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
+        create_info.queueFamilyIndexCount = 2;
+        create_info.pQueueFamilyIndices   = queueFamilyIndices;
     }
     else
     {
-        createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
-        createInfo.queueFamilyIndexCount = 0;          // Optional
-        createInfo.pQueueFamilyIndices   = nullptr;    // Optional
+        create_info.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+        create_info.queueFamilyIndexCount = 0;          // Optional
+        create_info.pQueueFamilyIndices   = nullptr;    // Optional
     }
 
-    createInfo.preTransform   = capabilities.currentTransform;
-    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    createInfo.presentMode    = swapchain->present_mode;
-    createInfo.clipped        = VK_TRUE;
-    createInfo.oldSwapchain   = VK_NULL_HANDLE;
+    create_info.preTransform   = capabilities.currentTransform;
+    create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    create_info.presentMode    = present_mode;
+    create_info.clipped        = VK_TRUE;
+    create_info.oldSwapchain   = VK_NULL_HANDLE;
 
-    if(vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapchain->swapchain) !=
-       VK_SUCCESS)
+    if(vkCreateSwapchainKHR(device, &create_info, nullptr, &swapchain) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create swap chain!");
     }
 
-    vkGetSwapchainImagesKHR(device, swapchain->swapchain, &imageCount, nullptr);
-    swapchain->images.resize(imageCount);
-    vkGetSwapchainImagesKHR(device, swapchain->swapchain, &imageCount,
-                            swapchain->images.data());
+    vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
+    images.resize(imageCount);
+    vkGetSwapchainImagesKHR(device, swapchain, &imageCount, images.data());
 }
 
 std::vector<VkPresentModeKHR>

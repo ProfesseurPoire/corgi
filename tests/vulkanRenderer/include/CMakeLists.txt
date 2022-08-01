@@ -1,2 +1,3 @@
 target_sources(${PROJECT_NAME} PUBLIC
-    Swapchain.h)
+    Swapchain.h
+    PhysicalDevice.h)
