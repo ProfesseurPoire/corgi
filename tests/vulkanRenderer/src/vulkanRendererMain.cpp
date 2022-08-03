@@ -17,6 +17,8 @@
 #include <span>
 #include <vector>
 
+#include "Framebuffer.h"
+
 // TODO : Inspect this :
 // I'm disabling the main SDL macro because i'm stumbling upon a undefined reference
 // thing and I don't really understand why since the rest of the SDL seems to be
@@ -36,7 +38,6 @@ SDL_Window*                window {nullptr};
 VkInstance                 instance;
 VkDevice                   device;
 VkPipeline                 graphicsPipeline;
-VkPhysicalDevice           physicalDevice;
 VkQueue                    graphicsQueue;
 VkQueue                    presentQueue;
 VkSurfaceKHR               surface;
@@ -44,7 +45,7 @@ Swapchain                  swapchain;
 std::vector<VkImageView>   swapChainImageViews;
 VkRenderPass               renderPass;
 VkPipelineLayout           pipelineLayout;
-std::vector<VkFramebuffer> swapChainFramebuffers;
+std::vector<Framebuffer>    swapChainFramebuffers;
 VkCommandPool              commandPool;
 VkCommandBuffer            commandBuffer;
 VkSemaphore                imageAvailableSemaphore;
@@ -689,28 +690,17 @@ void create_graphic_pipeline()
     vkDestroyShaderModule(device, vertShaderModule, nullptr);
 }
 
+// Apparently I make a framebuffer for each swapchain I made?
+// Or I make a framebuffer for each image in the swapchain?
 void create_framebuffers()
 {
-    swapChainFramebuffers.resize(swapChainImageViews.size());
+    swapChainFramebuffers.reserve(swapChainImageViews.size());
 
     for(size_t i = 0; i < swapChainImageViews.size(); i++)
     {
-        VkImageView attachments[] = {swapChainImageViews[i]};
-
-        VkFramebufferCreateInfo framebufferInfo {};
-        framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass      = renderPass;
-        framebufferInfo.attachmentCount = 1;
-        framebufferInfo.pAttachments    = attachments;
-        framebufferInfo.width           = swapchain.create_info.imageExtent.width;
-        framebufferInfo.height          = swapchain.create_info.imageExtent.height;
-        framebufferInfo.layers          = 1;
-
-        if(vkCreateFramebuffer(device, &framebufferInfo, nullptr,
-                               &swapChainFramebuffers[i]) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create framebuffer!");
-        }
+        swapChainFramebuffers.push_back( Framebuffer(swapchain.create_info.imageExtent.width,
+                                swapchain.create_info.imageExtent.height,
+                                &swapChainImageViews[i], renderPass, device));
     }
 }
 void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
@@ -728,7 +718,7 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
     VkRenderPassBeginInfo renderPassInfo {};
     renderPassInfo.sType       = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass  = renderPass;
-    renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
+    renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex].framebuffer();
 
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = swapchain.create_info.imageExtent;
@@ -858,11 +848,11 @@ void create_vulkan_instance()
         physical_device.print();
     }
 
-    auto physical_device = select_best_physical_device(physical_devices);
+    auto physical_device = PhysicalDevice::get_best_physical_device(physical_devices);
 
     create_surface();
 
-    auto queue_families = get_queue_families(physical_device);
+    auto queue_families = get_queue_families(physical_device.vulkan_device());
     print_queue_family(queue_families);
 
     auto graphic_queue       = get_graphic_queue(queue_families);
@@ -871,9 +861,10 @@ void create_vulkan_instance()
     if(!graphic_queue)
         throw std::runtime_error("No graphic queue");
 
-    create_vulkan_device(physical_device, graphic_queue_index);
+    create_vulkan_device(physical_device.vulkan_device(), graphic_queue_index);
 
-    swapchain.initialize(physicalDevice, device, surface, window, graphic_family_index,
+    swapchain.initialize(physical_device.vulkan_device(), device, surface, window,
+                         graphic_family_index,
                          present_family_index);
 
     create_image_views();
@@ -972,7 +963,7 @@ void cleanup()
     vkDestroyCommandPool(device, commandPool, nullptr);
 
     for(auto framebuffer : swapChainFramebuffers)
-        vkDestroyFramebuffer(device, framebuffer, nullptr);
+        vkDestroyFramebuffer(device, framebuffer.framebuffer(), nullptr);
 
     vkDestroyPipeline(device, graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);

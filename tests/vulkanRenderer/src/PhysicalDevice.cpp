@@ -63,11 +63,13 @@ std::vector<PhysicalDevice> PhysicalDevice::get_physical_devices(VkInstance inst
     }
 
     std::vector<VkPhysicalDevice> devices(device_count);
+    devices.resize(device_count);
     vkEnumeratePhysicalDevices(instance, &device_count, devices.data());
 
     std::vector<PhysicalDevice> physical_devices;
 
-    std::ranges::transform(devices, physical_devices.begin(),
+    // std back inserter needed otherwise we would need physical_device to be already set in size
+    std::transform(devices.begin(), devices.end(), std::back_inserter(physical_devices),
                            [](const VkPhysicalDevice& vulkan_device)
                            { return PhysicalDevice(vulkan_device); });
 

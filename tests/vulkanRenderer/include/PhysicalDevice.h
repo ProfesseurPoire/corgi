@@ -23,7 +23,7 @@ public:
      * @return VkPhysicalDevice 
      */
 
-    PhysicalDevice
+    static PhysicalDevice
     get_best_physical_device(const std::vector<PhysicalDevice>& physical_devices);
 
 public:
@@ -42,7 +42,6 @@ public:
         std::cout << "\t\t" << deviceProperties.vendorID << "\n";
         std::cout.flush();
     }
-
 private:
     PhysicalDevice(VkPhysicalDevice device);
     VkPhysicalDevice vulkan_device_;

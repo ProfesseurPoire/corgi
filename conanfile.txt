@@ -1,5 +1,5 @@
 [requires]
-freetype/2.12.1
+freetype/2.11.1
 harfbuzz/3.2.0 
 sdl/2.0.20
 sdl_mixer/2.0.4
@@ -19,5 +19,5 @@ glad:shared=True
 glad:gl_version=4.4
 
 [imports]
-bin, *.dll -> ./bin     # Copies all dll files from packages bin folder to my "bin" folder
-lib, *.dylib* -> ./bin  # Copies all dylib files from packages lib folder to my "bin" folder
+bin, *.dll -> ../build/bin     # Copies all dll files from packages bin folder to my "bin" folder
+lib, *.dylib* -> ../build/bin  # Copies all dylib files from packages lib folder to my "bin" folder
