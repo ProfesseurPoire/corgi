@@ -185,6 +185,20 @@ void Swapchain::initialize(VkPhysicalDevice        physical_device,
     vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
     images.resize(imageCount);
     vkGetSwapchainImagesKHR(device, swapchain, &imageCount, images.data());
+
+    initialize_image_views(device);
+}
+
+void Swapchain::initialize_framebuffers(VkDevice device, VkRenderPass render_pass)
+{
+    framebuffers.reserve(images_view.size());
+
+    for(auto& image_view : images_view)
+    {
+        framebuffers.push_back(Framebuffer(create_info.imageExtent.width,
+                                           create_info.imageExtent.height, &image_view,
+                                           render_pass, device));
+    }
 }
 
 std::vector<VkPresentModeKHR>
@@ -203,4 +217,33 @@ swapchain_get_present_modes(VkPhysicalDevice physical_device, VkSurfaceKHR surfa
     }
 
     return present_modes;
+}
+
+void Swapchain::initialize_image_views(VkDevice device)
+{
+    images_view.resize(images.size());
+
+    // I think imageview kinda correspond to a texture, with the mip level etc
+
+    for(size_t i = 0; i < images.size(); i++)
+    {
+        VkImageViewCreateInfo createInfo {};
+
+        createInfo.sType                       = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        createInfo.image                       = images[i];
+        createInfo.viewType                    = VK_IMAGE_VIEW_TYPE_2D;
+        createInfo.format                      = create_info.imageFormat;
+        createInfo.components.r                = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.g                = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.b                = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.a                = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        createInfo.subresourceRange.baseMipLevel   = 0;
+        createInfo.subresourceRange.levelCount     = 1;
+        createInfo.subresourceRange.baseArrayLayer = 0;
+        createInfo.subresourceRange.layerCount     = 1;
+
+        if(vkCreateImageView(device, &createInfo, nullptr, &images_view[i]) != VK_SUCCESS)
+            throw std::runtime_error("failed to create image views!");
+    }
 }

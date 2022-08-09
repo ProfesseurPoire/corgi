@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Framebuffer.h>
 #include <vulkan/vulkan.hpp>
 
 #include <optional>
@@ -8,7 +9,7 @@
 struct SDL_Window;
 
 /**
- * @brief The swapchain stores images the graphic card will draw unto, before they are presented to the monitor.
+ * @brief   The swapchain stores images the graphic card will draw unto, before they are presented to the monitor.
  *          Multiple images are used to smooth the process. If we buffer some images, it means the 
  *          monitor don't have to wait for drawing operations to be over on one image.
  * 
@@ -17,6 +18,12 @@ struct Swapchain
 {
     // The actual buffer images
     std::vector<VkImage> images;
+
+    // The image views
+    std::vector<VkImageView> images_view;
+
+    // The framebuffers
+    std::vector<Framebuffer> framebuffers;
 
     // The swapchain identifier
     VkSwapchainKHR swapchain;
@@ -45,6 +52,21 @@ struct Swapchain
                     std::optional<unsigned> present_family_index);
 
     void finalize(VkDevice device);
+
+    /**
+     * @brief   Initialize the framebuffers
+     * 
+     *          We got one framebuffer for each image created by the swapchain.
+     * 
+     *          Framebuffer needs to specify for which render pass they are compatible,
+     *          so that's why we pass this argument
+     * 
+     * @param render_pass 
+     */
+    void initialize_framebuffers(VkDevice device, VkRenderPass render_pass);
+
+private:
+    void initialize_image_views(VkDevice device);
 };
 
 VkSurfaceCapabilitiesKHR swapchain_get_capabilities(VkSurfaceKHR     surface,
