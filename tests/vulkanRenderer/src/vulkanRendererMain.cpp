@@ -3,6 +3,7 @@
 #include "PhysicalDevice.h"
 #include "Pipeline.h"
 #include "RenderPass.h"
+#include "Vertex.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
@@ -49,6 +50,7 @@ VkSemaphore     imageAvailableSemaphore;
 VkSemaphore     renderFinishedSemaphore;
 VkFence         inFlightFence;
 Pipeline        pipeline;
+VkBuffer        vertexBuffer;
 
 struct SwapChainSupportDetails
 {
@@ -56,6 +58,10 @@ struct SwapChainSupportDetails
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR>   presentModes;
 };
+
+std::vector<Vertex> vertices = {{0.0f, -0.5f, 1.0f, 0.0f, 0.0f},
+                                {0.5f, 0.5f, 0.0f, 1.0f, 0.0f},
+                                {-0.5f, 0.5f, 0.0f, 0.0f, 1.0f}};
 
 std::optional<unsigned> present_family_index;
 std::optional<unsigned> graphic_family_index;
@@ -472,8 +478,11 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
     scissor.extent = swapchain.create_info.imageExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    // This is where we actually draw our triangle
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    VkBuffer     vertexBuffers[] = {vertexBuffer};
+    VkDeviceSize offsets[]       = {0};
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+    vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
 
@@ -599,6 +608,8 @@ void create_vulkan_instance()
     swapchain.initialize_framebuffers(device, renderPass.render_pass);
     pipeline.initialize(device, renderPass.render_pass, swapchain);
     create_command_pool();
+    vertexBuffer =
+        Vertex::create_vertex_buffer(physical_device.vulkan_device(), device, vertices);
     createCommandBuffer();
     createSyncObjects();
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Swapchain.h"
+#include "Vertex.h"
 
 #include <vulkan/vulkan.hpp>
 
@@ -83,12 +84,15 @@ public:
         dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
         dynamicState.pDynamicStates    = dynamicStates.data();
 
+        auto bindingDescription    = Vertex::getBindingDescription();
+        auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
         VkPipelineVertexInputStateCreateInfo vertexInputInfo {};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexBindingDescriptionCount   = 0;
-        vertexInputInfo.pVertexBindingDescriptions      = nullptr;    // Optional
-        vertexInputInfo.vertexAttributeDescriptionCount = 0;
-        vertexInputInfo.pVertexAttributeDescriptions    = nullptr;    // Optional
+        vertexInputInfo.vertexBindingDescriptionCount   = 1;
+        vertexInputInfo.pVertexBindingDescriptions      = &bindingDescription;
+        vertexInputInfo.vertexAttributeDescriptionCount = 2;
+        vertexInputInfo.pVertexAttributeDescriptions    = attributeDescriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly {};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
