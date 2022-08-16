@@ -1,8 +1,12 @@
 #define VK_USE_PLATFORM_WIN32_KHR
+
+#include "Buffer.h"
 #include "Framebuffer.h"
+#include "IndexBuffer.h"
 #include "PhysicalDevice.h"
 #include "Pipeline.h"
 #include "RenderPass.h"
+#include "UniformBufferObject.h"
 #include "Vertex.h"
 
 #include <SDL2/SDL.h>
@@ -59,9 +63,10 @@ struct SwapChainSupportDetails
     std::vector<VkPresentModeKHR>   presentModes;
 };
 
-std::vector<Vertex> vertices = {{0.0f, -0.5f, 1.0f, 0.0f, 0.0f},
-                                {0.5f, 0.5f, 0.0f, 1.0f, 0.0f},
-                                {-0.5f, 0.5f, 0.0f, 0.0f, 1.0f}};
+std::vector<Vertex> vertices = {{-0.5f, -0.5f, 1.0f, 0.0f, 0.0f},
+                                {0.5f, -0.5f, 0.0f, 1.0f, 0.0f},
+                                {0.5f, 0.5f, 0.0f, 0.0f, 1.0f},
+                                {-0.5f, 0.5f, 1.0f, 1.0f, 1.0f}};
 
 std::optional<unsigned> present_family_index;
 std::optional<unsigned> graphic_family_index;
@@ -480,9 +485,11 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 
     VkBuffer     vertexBuffers[] = {vertexBuffer};
     VkDeviceSize offsets[]       = {0};
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
 
@@ -610,6 +617,9 @@ void create_vulkan_instance()
     create_command_pool();
     vertexBuffer =
         Vertex::create_vertex_buffer(physical_device.vulkan_device(), device, vertices);
+
+    IndexBuffer::create(graphicsQueue, commandPool, device,
+                        physical_device.vulkan_device());
     createCommandBuffer();
     createSyncObjects();
 }
