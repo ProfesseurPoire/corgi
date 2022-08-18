@@ -27,9 +27,14 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD # Adds a post build event t
     "${PROJECT_SOURCE_DIR}/shaders"
     $<TARGET_FILE_DIR:vulkanRenderer>/shaders)
 
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD # Adds a post build event to the given target
+    COMMAND ${CMAKE_COMMAND} -E copy_directory # Executes the copy directory command
+    "${PROJECT_SOURCE_DIR}/resources"
+    $<TARGET_FILE_DIR:vulkanRenderer>/resources)
+
 if(UNIX)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${CONAN_LIBS} ${VULKAN_SDK_PATH}/Lib/vulkan-1.lib)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${CONAN_LIBS} corgi-math ${VULKAN_SDK_PATH}/Lib/vulkan-1.lib)

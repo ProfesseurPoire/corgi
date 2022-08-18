@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Swapchain.h"
+#include "UniformBufferObject.h"
 #include "Vertex.h"
 
 #include <vulkan/vulkan.hpp>
@@ -84,6 +85,17 @@ public:
         dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
         dynamicState.pDynamicStates    = dynamicStates.data();
 
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo {};
+        pipelineLayoutInfo.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutInfo.setLayoutCount = 1;
+        pipelineLayoutInfo.pSetLayouts    = &UniformBufferObject::descriptorSetLayout;
+
+        if(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr,
+                                  &pipeline_layout) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create pipeline layout!");
+        }
+
         auto bindingDescription    = Vertex::getBindingDescription();
         auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
@@ -91,7 +103,7 @@ public:
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         vertexInputInfo.vertexBindingDescriptionCount   = 1;
         vertexInputInfo.pVertexBindingDescriptions      = &bindingDescription;
-        vertexInputInfo.vertexAttributeDescriptionCount = 2;
+        vertexInputInfo.vertexAttributeDescriptionCount = 3;
         vertexInputInfo.pVertexAttributeDescriptions    = attributeDescriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly {};
@@ -124,7 +136,7 @@ public:
         rasterizer.rasterizerDiscardEnable = VK_FALSE;
         rasterizer.polygonMode             = VK_POLYGON_MODE_FILL;
         rasterizer.lineWidth               = 1.0f;
-        rasterizer.cullMode                = VK_CULL_MODE_BACK_BIT;
+        rasterizer.cullMode                = VK_CULL_MODE_NONE;
         rasterizer.frontFace               = VK_FRONT_FACE_CLOCKWISE;
         rasterizer.depthBiasEnable         = VK_FALSE;
         rasterizer.depthBiasConstantFactor = 0.0f;    // Optional
@@ -162,19 +174,6 @@ public:
         colorBlending.blendConstants[1] = 0.0f;    // Optional
         colorBlending.blendConstants[2] = 0.0f;    // Optional
         colorBlending.blendConstants[3] = 0.0f;    // Optional
-
-        VkPipelineLayoutCreateInfo pipelineLayoutInfo {};
-        pipelineLayoutInfo.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 0;                  // Optional
-        pipelineLayoutInfo.pSetLayouts    = nullptr;            // Optional
-        pipelineLayoutInfo.pushConstantRangeCount = 0;          // Optional
-        pipelineLayoutInfo.pPushConstantRanges    = nullptr;    // Optional
-
-        if(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr,
-                                  &pipeline_layout) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create pipeline layout!");
-        }
 
         VkGraphicsPipelineCreateInfo pipelineInfo {};
         pipelineInfo.sType             = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

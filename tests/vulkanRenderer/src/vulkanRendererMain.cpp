@@ -1,11 +1,12 @@
 #define VK_USE_PLATFORM_WIN32_KHR
-
 #include "Buffer.h"
 #include "Framebuffer.h"
+#include "Image.h"
 #include "IndexBuffer.h"
 #include "PhysicalDevice.h"
 #include "Pipeline.h"
 #include "RenderPass.h"
+#include "Texture.h"
 #include "UniformBufferObject.h"
 #include "Vertex.h"
 
@@ -63,10 +64,10 @@ struct SwapChainSupportDetails
     std::vector<VkPresentModeKHR>   presentModes;
 };
 
-std::vector<Vertex> vertices = {{-0.5f, -0.5f, 1.0f, 0.0f, 0.0f},
-                                {0.5f, -0.5f, 0.0f, 1.0f, 0.0f},
-                                {0.5f, 0.5f, 0.0f, 0.0f, 1.0f},
-                                {-0.5f, 0.5f, 1.0f, 1.0f, 1.0f}};
+std::vector<Vertex> vertices = {{-0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f},
+                                {0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f},
+                                {0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+                                {-0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}};
 
 std::optional<unsigned> present_family_index;
 std::optional<unsigned> graphic_family_index;
@@ -397,6 +398,8 @@ void create_vulkan_device(VkPhysicalDevice physical_device, unsigned graphic_que
     }
 
     VkPhysicalDeviceFeatures deviceFeatures {};
+    // TODO : Check if the device is suitable
+    deviceFeatures.samplerAnisotropy = VK_TRUE;
 
     VkDeviceCreateInfo createInfo {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -488,6 +491,12 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            pipeline.pipeline_layout, 0, 1,
+                            &UniformBufferObject::descriptorSets[0], 0, nullptr);
+
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
@@ -613,13 +622,29 @@ void create_vulkan_instance()
 
     renderPass.initialize(device, swapchain.create_info.imageFormat);
     swapchain.initialize_framebuffers(device, renderPass.render_pass);
+
+    UniformBufferObject::createDescriptorSetLayout(device);
+
     pipeline.initialize(device, renderPass.render_pass, swapchain);
+
     create_command_pool();
+
+    Image::create_texture_image(device, physical_device.vulkan_device(), commandPool,
+                                graphicsQueue);
+
+    Texture::create_texture_image_view(device);
+    Texture::createTextureSampler(device, physical_device.vulkan_device());
+
     vertexBuffer =
         Vertex::create_vertex_buffer(physical_device.vulkan_device(), device, vertices);
 
     IndexBuffer::create(graphicsQueue, commandPool, device,
                         physical_device.vulkan_device());
+
+    UniformBufferObject::create_uniform_buffers(device, physical_device.vulkan_device());
+    UniformBufferObject::create_descriptor_pool(device);
+    UniformBufferObject::create_descriptor_sets(device);
+
     createCommandBuffer();
     createSyncObjects();
 }
@@ -649,6 +674,8 @@ void draw_frame()
     uint32_t imageIndex;
     vkAcquireNextImageKHR(device, swapchain.swapchain, UINT64_MAX,
                           imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+    UniformBufferObject::updateUniformBuffer(device, 0);
 
     // We clear the command buffer
     vkResetCommandBuffer(commandBuffer, 0);

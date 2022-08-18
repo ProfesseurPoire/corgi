@@ -2,3 +2,5 @@
 /conan
 /out
 /.vs
+/.vscode
+.*

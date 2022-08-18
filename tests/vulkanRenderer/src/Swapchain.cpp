@@ -5,6 +5,9 @@
 void Swapchain::finalize(VkDevice device)
 {
     vkDestroySwapchainKHR(device, swapchain, nullptr);
+
+
+
 }
 
 /*!
@@ -13,8 +16,9 @@ void Swapchain::finalize(VkDevice device)
  * @param availableFormats 
  * @return VkSurfaceFormatKHR 
  */
-VkSurfaceFormatKHR
-chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+VkSurfaceFormatKHR chooseSwapSurfaceFormat(
+    const std::vector<VkSurfaceFormatKHR>& availableFormats
+    )
 {
     // Here we just arbitrarly chose something that kinda works wells for most usage
     for(const auto& availableFormat : availableFormats)
@@ -29,8 +33,9 @@ chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
     return availableFormats[0];
 }
 
-VkPresentModeKHR
-chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+VkPresentModeKHR chooseSwapPresentMode(
+    const std::vector<VkPresentModeKHR>& availablePresentModes
+    )
 {
     for(const auto& availablePresentMode : availablePresentModes)
     {
@@ -43,7 +48,8 @@ chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes
 
 VkExtent2D swapchain_choose_swap_extent(Swapchain*                      swapchain,
                                         SDL_Window*                     window,
-                                        const VkSurfaceCapabilitiesKHR& capabilities)
+                                        const VkSurfaceCapabilitiesKHR& capabilities
+    )
 {
     if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
     {
@@ -73,15 +79,18 @@ VkExtent2D swapchain_choose_swap_extent(Swapchain*                      swapchai
 }
 
 VkSurfaceCapabilitiesKHR swapchain_get_capabilities(VkSurfaceKHR     surface,
-                                                    VkPhysicalDevice physical_device)
+                                                    VkPhysicalDevice physical_device
+    )
 {
     VkSurfaceCapabilitiesKHR capabilities;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface, &capabilities);
     return capabilities;
 }
 
-std::vector<VkSurfaceFormatKHR>
-swapchain_get_surface_formats(VkPhysicalDevice physical_device, VkSurfaceKHR surface)
+std::vector<VkSurfaceFormatKHR> swapchain_get_surface_formats(
+    VkPhysicalDevice physical_device,
+    VkSurfaceKHR     surface
+    )
 {
     std::vector<VkSurfaceFormatKHR> formats;
 
@@ -106,7 +115,8 @@ void Swapchain::initialize(VkPhysicalDevice        physical_device,
                            VkSurfaceKHR            surface,
                            SDL_Window*             window,
                            std::optional<unsigned> graphic_family_index,
-                           std::optional<unsigned> present_family_index)
+                           std::optional<unsigned> present_family_index
+    )
 {
     auto capabilities = swapchain_get_capabilities(surface, physical_device);
     auto formats      = swapchain_get_surface_formats(physical_device, surface);
@@ -201,8 +211,10 @@ void Swapchain::initialize_framebuffers(VkDevice device, VkRenderPass render_pas
     }
 }
 
-std::vector<VkPresentModeKHR>
-swapchain_get_present_modes(VkPhysicalDevice physical_device, VkSurfaceKHR surface)
+std::vector<VkPresentModeKHR> swapchain_get_present_modes(
+    VkPhysicalDevice physical_device,
+    VkSurfaceKHR     surface
+    )
 {
     uint32_t count;
     vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface, &count, nullptr);
@@ -229,19 +241,19 @@ void Swapchain::initialize_image_views(VkDevice device)
     {
         VkImageViewCreateInfo createInfo {};
 
-        createInfo.sType                       = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image                       = images[i];
-        createInfo.viewType                    = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format                      = create_info.imageFormat;
-        createInfo.components.r                = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.g                = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.b                = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.a                = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        createInfo.image = images[i];
+        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        createInfo.format = create_info.imageFormat;
+        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
         createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        createInfo.subresourceRange.baseMipLevel   = 0;
-        createInfo.subresourceRange.levelCount     = 1;
+        createInfo.subresourceRange.baseMipLevel = 0;
+        createInfo.subresourceRange.levelCount = 1;
         createInfo.subresourceRange.baseArrayLayer = 0;
-        createInfo.subresourceRange.layerCount     = 1;
+        createInfo.subresourceRange.layerCount = 1;
 
         if(vkCreateImageView(device, &createInfo, nullptr, &images_view[i]) != VK_SUCCESS)
             throw std::runtime_error("failed to create image views!");

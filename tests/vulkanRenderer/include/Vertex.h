@@ -74,6 +74,7 @@ struct Vertex
 
     float x, y;
     float r, g, b;
+    float u, v;
 
     static VkVertexInputBindingDescription getBindingDescription()
     {
@@ -81,12 +82,13 @@ struct Vertex
         bindingDescription.binding   = 0;
         bindingDescription.stride    = sizeof(Vertex);
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions()
+    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
     {
-        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions {};
+        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions {};
 
         attributeDescriptions[0].binding  = 0;
         attributeDescriptions[0].location = 0;
@@ -97,6 +99,11 @@ struct Vertex
         attributeDescriptions[1].location = 1;
         attributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[1].offset   = sizeof(float) * 2;
+
+        attributeDescriptions[2].binding  = 0;
+        attributeDescriptions[2].location = 2;
+        attributeDescriptions[2].format   = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[2].offset   = sizeof(float) * 5;
 
         return attributeDescriptions;
     }

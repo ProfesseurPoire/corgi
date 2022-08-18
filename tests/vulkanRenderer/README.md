@@ -13,6 +13,13 @@ For vs code with the cmake extension installed, we do it by editing the .vscode/
 }
 ```
 
+And on visual studio code, we can edit the .vscode/settings.json file
+
+```json
+"cmake.configureSettings": {
+        "VULKAN_SDK_PATH": "C:\\VulkanSDK\\1.3.216.0"
+    }
+```
 
 
 ## How it actually works?
