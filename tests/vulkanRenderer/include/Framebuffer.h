@@ -34,7 +34,7 @@ public:
 
         create_info_.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         create_info_.renderPass      = render_pass;
-        create_info_.attachmentCount = 1;
+        create_info_.attachmentCount = 2;
         create_info_.pAttachments    = attachments;
         create_info_.width           = width;
         create_info_.height          = height;

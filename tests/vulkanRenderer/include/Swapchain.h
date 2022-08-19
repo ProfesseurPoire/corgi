@@ -63,7 +63,9 @@ struct Swapchain
      * 
      * @param render_pass 
      */
-    void initialize_framebuffers(VkDevice device, VkRenderPass render_pass);
+    void initialize_framebuffers(VkImageView  depthBuffer,
+                                 VkDevice     device,
+                                 VkRenderPass render_pass);
 
 private:
     void initialize_image_views(VkDevice device);

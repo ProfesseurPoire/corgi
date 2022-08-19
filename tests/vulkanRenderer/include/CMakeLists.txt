@@ -4,4 +4,5 @@ target_sources(${PROJECT_NAME} PUBLIC
     UniformBufferObject.h
     PhysicalDevice.h
     RenderPass.h
-    Pipeline.h)
+    Pipeline.h
+    VulkanRenderer.h)

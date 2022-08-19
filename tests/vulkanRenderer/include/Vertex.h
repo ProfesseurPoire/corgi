@@ -72,7 +72,7 @@ struct Vertex
         vkDestroyBuffer(device, buffer, nullptr);
     }
 
-    float x, y;
+    float x, y, z;
     float r, g, b;
     float u, v;
 
@@ -92,18 +92,18 @@ struct Vertex
 
         attributeDescriptions[0].binding  = 0;
         attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format   = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[0].format   = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[0].offset   = 0;
 
         attributeDescriptions[1].binding  = 0;
         attributeDescriptions[1].location = 1;
         attributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset   = sizeof(float) * 2;
+        attributeDescriptions[1].offset   = sizeof(float) * 3;
 
         attributeDescriptions[2].binding  = 0;
         attributeDescriptions[2].location = 2;
         attributeDescriptions[2].format   = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset   = sizeof(float) * 5;
+        attributeDescriptions[2].offset   = sizeof(float) * 6;
 
         return attributeDescriptions;
     }
