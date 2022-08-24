@@ -2,12 +2,8 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include <array>
-#include <span>
-
 struct Buffer
 {
-
     static VkCommandBuffer beginSingleTimeCommands(VkCommandPool commandPool,
                                                    VkDevice      device)
     {

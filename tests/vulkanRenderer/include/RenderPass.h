@@ -20,7 +20,7 @@ public:
     void initialize(VkDevice device, VkPhysicalDevice physical_device, VkFormat format)
     {
         VkAttachmentDescription depthAttachment {};
-        depthAttachment.format  = DepthBuffer::findDepthFormat(device, physical_device);
+        depthAttachment.format  = DepthBuffer::findDepthFormat(physical_device); // why do I use the find function here?
         depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
         depthAttachment.loadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8.0)
+cmake_minimum_required(VERSION 3.16.0)
 
 project(vulkanRenderer)
 
@@ -16,9 +16,11 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 target_compile_definitions(${PROJECT_NAME} PUBLIC CORGI_VERBOSITY=3)
 
 if(MSVC)
-    # Removing annoying CRT warnings on msvc
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    target_compile_options(${PROJECT_NAME} PRIVATE /W4)
+
+    # Not sure why this doesnt works on visual studio. I did bump cmake version
+    # so it should work, and it works with visual studio code
+    # target_compile_options(${PROJECT_NAME} PRIVATE /W4)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4514")
 endif()
 
@@ -33,7 +35,7 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD # Adds a post build event t
     $<TARGET_FILE_DIR:vulkanRenderer>/resources)
 
 if(UNIX)
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
+    # target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)

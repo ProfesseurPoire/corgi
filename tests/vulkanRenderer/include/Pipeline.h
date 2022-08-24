@@ -2,7 +2,7 @@
 
 #include "Swapchain.h"
 #include "UniformBufferObject.h"
-#include "Vertex.h"
+#include "VertexBuffer.h"
 
 #include <vulkan/vulkan.hpp>
 
@@ -54,7 +54,7 @@ public:
     VkPipelineLayout pipeline_layout;
     VkPipeline       pipeline;
 
-    void initialize(VkDevice device, VkRenderPass render_pass, const Swapchain& swapchain)
+    void initialize(VkDevice device, VkRenderPass render_pass, const Swapchain& swapchain, const UniformBufferObject& uniform_buffer_object)
     {
         auto vertShaderCode = read_file("shaders/vert.spv");
         auto fragShaderCode = read_file("shaders/frag.spv");
@@ -88,7 +88,7 @@ public:
         VkPipelineLayoutCreateInfo pipelineLayoutInfo {};
         pipelineLayoutInfo.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts    = &UniformBufferObject::descriptorSetLayout;
+        pipelineLayoutInfo.pSetLayouts    = &uniform_buffer_object.descriptorSetLayout;
 
         if(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr,
                                   &pipeline_layout) != VK_SUCCESS)
@@ -96,8 +96,8 @@ public:
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
-        auto bindingDescription    = Vertex::getBindingDescription();
-        auto attributeDescriptions = Vertex::getAttributeDescriptions();
+        auto bindingDescription    = VertexBuffer::getBindingDescription();
+        auto attributeDescriptions = VertexBuffer::getAttributeDescriptions();
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo {};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

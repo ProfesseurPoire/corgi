@@ -1,6 +1,13 @@
 #pragma once
 
+#include "IndexBuffer.h"
 #include "PhysicalDevice.h"
+#include "Pipeline.h"
+#include "RenderPass.h"
+#include "Swapchain.h"
+#include "UniformBufferObject.h"
+#include "VulkanConstants.h"
+#include "VertexBuffer.h"
 
 #include <vulkan/vulkan_core.h>
 
@@ -8,6 +15,12 @@
 #include <vector>
 
 struct SDL_Window;
+
+struct Mesh
+{
+    IndexBuffer ib;
+    VertexBuffer vb;
+};
 
 class VulkanRenderer
 {
@@ -19,6 +32,46 @@ public:
     PhysicalDevice physical_device_;
     SDL_Window*    window_;
     VkSurfaceKHR   surface_;
+    Swapchain      swapchain_;
+    RenderPass     render_pass_;
+    DepthBuffer    depth_buffer_;
+    VkCommandPool  commandPool;
+
+    std::vector<VkSemaphore> image_available_semaphores_;
+    std::vector<VkSemaphore> render_finished_semaphores_;
+    std::vector<VkFence>     in_flight_fences_;
+
+    void init();
+
+    /**
+     * \brief Helper function to create a buffer that stores indexes
+     * \param indexes 
+     * \return 
+     */
+    IndexBuffer create_index_buffer(std::span<const uint16_t> indexes);
+
+    VertexBuffer create_vertex_buffer(std::span<Vertex> vertices);
+    Pipeline create_pipeline();
+
+    void create_command_buffers();
+    void create_command_pool();
+    void create_sync_objects();
+
+    void draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes);
+
+    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, int current_frame, Mesh mesh, Pipeline pipeline);
+
+    std::vector<UniformBufferObject> uniform_buffer_objects_;
+
+    void add_uniform_buffer_object(void*                            data,
+                                   int                              size,
+                                   UniformBufferObject::ShaderStage shader_stage,
+                                   int                              layout);
+
+    UniformBufferObject uniform_buffer_object_;
+
+    VkQueue graphicsQueue;
+    VkQueue presentQueue;
 
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
@@ -26,6 +79,7 @@ public:
     const bool enableValidationLayers = true;
 #endif
 
+    const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
     // We need the present queue, to send the images to the monitor

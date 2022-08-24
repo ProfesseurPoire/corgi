@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9.0)
+cmake_minimum_required(VERSION 3.15.0)
 
 project(corgi-math VERSION 1.0.0)
 

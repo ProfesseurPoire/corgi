@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13.0)
+cmake_minimum_required(VERSION 3.15.0)
 
 project(CorgiEngine LANGUAGES CXX VERSION 1.0.0)
 
@@ -61,7 +61,7 @@ if(${MSVC_CLANG})
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wno-c++98-compat-pedantic -Wshadow-field-in-constructor -Wno-float-equal)
 elseif(MSVC)
     message(STATUS "Entering MSVC Compilation Settings")
-    target_compile_options(${PROJECT_NAME} PRIVATE /W3)
+    #target_compile_options(${PROJECT_NAME} PRIVATE /W3)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4514 /wd5045")
 else()
     message(STATUS "Entering LINUX Compilation Settings")
