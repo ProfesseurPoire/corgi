@@ -20,6 +20,7 @@ struct Mesh
 {
     IndexBuffer ib;
     VertexBuffer vb;
+    UniformBufferObject ubo;
 };
 
 class VulkanRenderer
@@ -41,7 +42,6 @@ public:
     std::vector<VkSemaphore> render_finished_semaphores_;
     std::vector<VkFence>     in_flight_fences_;
 
-    void init();
 
     /**
      * \brief Helper function to create a buffer that stores indexes
@@ -51,7 +51,7 @@ public:
     IndexBuffer create_index_buffer(std::span<const uint16_t> indexes);
 
     VertexBuffer create_vertex_buffer(std::span<Vertex> vertices);
-    Pipeline create_pipeline();
+    Pipeline create_pipeline(const UniformBufferObject& ubo);
 
     void create_command_buffers();
     void create_command_pool();
@@ -63,12 +63,12 @@ public:
 
     std::vector<UniformBufferObject> uniform_buffer_objects_;
 
-    void add_uniform_buffer_object(void*                            data,
+    UniformBufferObject add_uniform_buffer_object(
+        void* data,
                                    int                              size,
                                    UniformBufferObject::ShaderStage shader_stage,
                                    int                              layout);
 
-    UniformBufferObject uniform_buffer_object_;
 
     VkQueue graphicsQueue;
     VkQueue presentQueue;

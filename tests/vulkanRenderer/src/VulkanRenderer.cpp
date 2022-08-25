@@ -32,11 +32,10 @@ void VulkanRenderer::create_command_buffers()
     }
 }
 
-Pipeline VulkanRenderer::create_pipeline()
+Pipeline VulkanRenderer::create_pipeline(const UniformBufferObject& ubo)
 {
     Pipeline pipeline;
-    pipeline.initialize(device_, render_pass_.render_pass, swapchain_,
-                        uniform_buffer_object_);
+    pipeline.initialize(device_, render_pass_.render_pass, swapchain_, ubo);
     return pipeline;
 }
 
@@ -98,36 +97,46 @@ VulkanRenderer::VulkanRenderer(SDL_Window* window)
     create_surface();
     create_queues();
     create_device();
+    create_command_pool();
 
-    // ubo should
-}
-
-void VulkanRenderer::init()
-{
     swapchain_.initialize(physical_device_.vulkan_device(), device_, surface_, window_,
                           graphic_family_index_, present_family_index_);
 
+    
     render_pass_.initialize(device_, physical_device_.vulkan_device(),
                             swapchain_.create_info.imageFormat);
 
     depth_buffer_.initialize(swapchain_, device_, physical_device_.vulkan_device());
 
+    
+
     swapchain_.initialize_framebuffers(depth_buffer_.depthImageView, device_,
                                        render_pass_.render_pass);
 
-    create_command_pool();
+    
+    create_command_buffers();
+    create_sync_objects();
 
+    
     Image::create_texture_image(device_, physical_device_.vulkan_device(), commandPool,
                                 graphicsQueue);
 
     Texture::create_texture_image_view(device_);
     Texture::createTextureSampler(device_, physical_device_.vulkan_device());
+}
 
-    uniform_buffer_object_.create_descriptor_pool(device_);
-    uniform_buffer_object_.create_descriptor_sets(device_);
 
-    create_command_buffers();
-    create_sync_objects();
+
+UniformBufferObject VulkanRenderer::add_uniform_buffer_object(
+    void* data, int size, UniformBufferObject::ShaderStage shader_stage, int layout)
+{
+    UniformBufferObject ubo;
+    ubo.add_uniform(device_, physical_device_.vulkan_device(), data,
+                                       size, shader_stage, layout);
+    ubo.create_descriptor_pool(device_);
+    ubo.create_descriptor_sets(device_);
+
+    return ubo;
 }
 
 void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer,
@@ -136,50 +145,9 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer,
                                          Mesh            mesh,
                                          Pipeline        pipeline)
 {
+    mesh.ubo.update(device_, currentFrame);
 
-
-    uniform_buffer_object_.update(device_, currentFrame);
-
-    VkCommandBufferBeginInfo beginInfo {};
-    beginInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags            = 0;          // Optional
-    beginInfo.pInheritanceInfo = nullptr;    // Optional
-
-    if(vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to begin recording command buffer!");
-    }
-
-    VkRenderPassBeginInfo renderPassInfo {};
-    renderPassInfo.sType       = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass  = render_pass_.render_pass;
-    renderPassInfo.framebuffer = swapchain_.framebuffers[imageIndex].framebuffer();
-
-    renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = swapchain_.create_info.imageExtent;
-
-    VkClearValue clearColor        = {{{0.0f, 1.0f, 0.0f, 1.0f}}};
-    renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues    = &clearColor;
-
-    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-    // So this is the pipeline used
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.pipeline);
-
-    VkViewport viewport {};
-    viewport.x        = 0.0f;
-    viewport.y        = 0.0f;
-    viewport.width    = static_cast<float>(swapchain_.create_info.imageExtent.width);
-    viewport.height   = static_cast<float>(swapchain_.create_info.imageExtent.height);
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-    VkRect2D scissor {};
-    scissor.offset = {0, 0};
-    scissor.extent = swapchain_.create_info.imageExtent;
-    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+   
 
     VkBuffer     vertexBuffers[] = {mesh.vb.buffer};
     VkDeviceSize offsets[]       = {0};
@@ -189,16 +157,12 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer,
                          VK_INDEX_TYPE_UINT16);
 
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            pipeline.pipeline_layout, 0, 1,
-                            &uniform_buffer_object_.descriptorSets[0], 0, nullptr);
+                            pipeline.pipeline_layout, 0, 1, &mesh.ubo.descriptorSets[0],
+                            0, nullptr);
 
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.ib.size), 1, 0, 0, 0);
-    vkCmdEndRenderPass(commandBuffer);
 
-    if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to record command buffer!");
-    }
+    
 }
 
 VertexBuffer VulkanRenderer::create_vertex_buffer(std::span<Vertex> vertices)
@@ -228,11 +192,67 @@ void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes)
     // We clear the command buffer
     vkResetCommandBuffer(command_buffers_[currentFrame], 0);
 
+
+    VkCommandBufferBeginInfo beginInfo {};
+    beginInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags            = 0;          // Optional
+    beginInfo.pInheritanceInfo = nullptr;    // Optional
+
+    if(vkBeginCommandBuffer(command_buffers_[currentFrame], &beginInfo) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to begin recording command buffer!");
+    }
+
+    
+
+    VkRenderPassBeginInfo renderPassInfo {};
+    renderPassInfo.sType       = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass  = render_pass_.render_pass;
+    renderPassInfo.framebuffer = swapchain_.framebuffers[imageIndex].framebuffer();
+
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = swapchain_.create_info.imageExtent;
+
+    VkClearValue clearColor        = {{{0.0f, 1.0f, 0.0f, 1.0f}}};
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues    = &clearColor;
+
+    vkCmdBeginRenderPass(command_buffers_[currentFrame], &renderPassInfo,
+                         VK_SUBPASS_CONTENTS_INLINE);
+
+   
+
     // We run our commands
     for(const auto& pair : meshes)
     {
+
+         // So this is the pipeline used
+        vkCmdBindPipeline(command_buffers_[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, pair.second.pipeline);
+
+        VkViewport viewport {};
+        viewport.x        = 0.0f;
+        viewport.y        = 0.0f;
+        viewport.width    = static_cast<float>(swapchain_.create_info.imageExtent.width);
+        viewport.height   = static_cast<float>(swapchain_.create_info.imageExtent.height);
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(command_buffers_[currentFrame], 0, 1, &viewport);
+
+        VkRect2D scissor {};
+        scissor.offset = {0, 0};
+        scissor.extent = swapchain_.create_info.imageExtent;
+        vkCmdSetScissor(command_buffers_[currentFrame], 0, 1, &scissor);
+
         recordCommandBuffer(command_buffers_[currentFrame], imageIndex, currentFrame, pair.first,
                             pair.second);
+
+
+    }
+    vkCmdEndRenderPass(command_buffers_[currentFrame]);
+
+    if(vkEndCommandBuffer(command_buffers_[currentFrame]) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to record command buffer!");
     }
 
     // We submit our commands
@@ -283,12 +303,6 @@ void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes)
     currentFrame = (currentFrame + 1) % VulkanConstants::max_in_flight;
 }
 
-void VulkanRenderer::add_uniform_buffer_object(
-    void* data, int size, UniformBufferObject::ShaderStage shader_stage, int layout)
-{
-    uniform_buffer_object_.add_uniform(device_, physical_device_.vulkan_device(), data,
-                                       size, shader_stage, layout);
-}
 
 struct QueueFamilies
 {

@@ -11,7 +11,6 @@
 #include "VertexBuffer.h"
 #include "VulkanConstants.h"
 #include "VulkanRenderer.h"
-#include "VertexBuffer.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
@@ -85,24 +84,30 @@ struct TestUniform
     corgi::Matrix model;
     corgi::Matrix view;
     corgi::Matrix proj;
-} uniform;
+};
+
+TestUniform uniform;
+TestUniform uniform2;
+
+UniformBufferObject ubo1;
+UniformBufferObject ubo2;
 
 void create_vulkan_instance()
 {
     vulkan_renderer = new VulkanRenderer(window);
 
-    vulkan_renderer->uniform_buffer_object_.add_uniform(
-        vulkan_renderer->device_, vulkan_renderer->physical_device_.vulkan_device(),
-                                       &uniform, sizeof(uniform),
-                                       UniformBufferObject::ShaderStage::Vertex, 0);
+    ubo1 = vulkan_renderer->add_uniform_buffer_object(
+        &uniform, sizeof(uniform), UniformBufferObject::ShaderStage::Vertex, 0);
 
-    vulkan_renderer->init();
+    ubo2 = vulkan_renderer->add_uniform_buffer_object(
+        &uniform2, sizeof(uniform), UniformBufferObject::ShaderStage::Vertex, 0);
 }
 
-Mesh mesh;
-Pipeline pipeline;
+Mesh                                   mesh;
+Mesh                                   mesh2;
+Pipeline                               pipeline;
+Pipeline                               pipeline2;
 std::vector<std::pair<Mesh, Pipeline>> meshes;
-
 
 void init_vulkan()
 {
@@ -113,13 +118,20 @@ void init_vulkan()
 
     create_vulkan_instance();
 
-
     // Probably the part handling the mesh creation. I should probably move it elsewhere
-    mesh.vb = vulkan_renderer->create_vertex_buffer(vertices);
+    mesh.vb  = vulkan_renderer->create_vertex_buffer(vertices);
     mesh.ib  = vulkan_renderer->create_index_buffer(indexes);
-    pipeline = vulkan_renderer->create_pipeline();
+    mesh.ubo = ubo1;
+    pipeline = vulkan_renderer->create_pipeline(mesh.ubo);
 
-    meshes.push_back({mesh,pipeline});
+    mesh2.vb  = vulkan_renderer->create_vertex_buffer(vertices);
+    mesh2.ib  = vulkan_renderer->create_index_buffer(indexes);
+    mesh2.ubo = ubo2;
+    pipeline2  = vulkan_renderer->create_pipeline(mesh2.ubo);
+
+
+    meshes.push_back({mesh, pipeline});
+    meshes.push_back({mesh2, pipeline2});
 }
 
 void main_loop()
@@ -147,9 +159,15 @@ void main_loop()
                          currentTime - startTime)
                          .count();
 
-        uniform.model = corgi::Matrix::euler_angles(0.0f, 0.0f, time);
+        uniform.model = corgi::Matrix::translation(-0.50f, 0.0f, 0.0f) *
+                        corgi::Matrix::euler_angles(0.0f, 0.0f, time);
         uniform.view.identity();
         uniform.proj = corgi::Matrix::ortho(-2, 2, -2, 2, -100, 100);
+
+        uniform2.model = corgi::Matrix::translation(0.50f, 0.0f, 0.0f)*
+            corgi::Matrix::euler_angles(0.0f, 0.0f, -time);
+        uniform2.view.identity();
+        uniform2.proj = corgi::Matrix::ortho(-2, 2, -2, 2, -100, 100);
 
         vulkan_renderer->draw(meshes);
         SDL_GL_SwapWindow(window);
