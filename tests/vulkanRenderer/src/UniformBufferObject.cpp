@@ -1,4 +1,5 @@
 #include "UniformBufferObject.h"
+
 #include "VulkanConstants.h"
 
 void UniformBufferObject::destroy_descriptor_set_layout(VkDevice device)
@@ -49,8 +50,8 @@ void UniformBufferObject::create_descriptor_sets(VkDevice device)
 
         VkDescriptorImageInfo imageInfo {};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView   = Texture::textureImageView;
-        imageInfo.sampler     = Texture::textureSampler;
+        imageInfo.imageView   = image_view.textureImageView;
+        imageInfo.sampler     = sampler;
 
         std::array<VkWriteDescriptorSet, 2> descriptorWrites {};
 
@@ -80,14 +81,12 @@ void UniformBufferObject::createDescriptorSetLayout(VkDevice    device,
                                                     int         layout)
 {
     // Temporary for now
-    const VkDescriptorSetLayoutBinding samplerLayoutBinding
-    {
+    const VkDescriptorSetLayoutBinding samplerLayoutBinding {
         .binding            = 1,
         .descriptorType     = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
         .descriptorCount    = 1,
         .stageFlags         = VK_SHADER_STAGE_FRAGMENT_BIT,
-        .pImmutableSamplers = nullptr
-    };
+        .pImmutableSamplers = nullptr};
 
     VkDescriptorSetLayoutBinding uboLayoutBinding {};
     uboLayoutBinding.binding = layout;
@@ -95,12 +94,12 @@ void UniformBufferObject::createDescriptorSetLayout(VkDevice    device,
     {
         // Means it's the UBO for the Vertex Shader
         case ShaderStage::Fragment:
-            uboLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;   
+            uboLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
             break;
 
         // Means it's the UBO for the Vertex Shader
         case ShaderStage::Vertex:
-            uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;    
+            uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
             break;
     }
 
@@ -110,7 +109,7 @@ void UniformBufferObject::createDescriptorSetLayout(VkDevice    device,
 
     std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding,
                                                             samplerLayoutBinding};
-    VkDescriptorSetLayoutCreateInfo layoutInfo {};
+    VkDescriptorSetLayoutCreateInfo             layoutInfo {};
     layoutInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     layoutInfo.pBindings    = bindings.data();
@@ -122,19 +121,20 @@ void UniformBufferObject::createDescriptorSetLayout(VkDevice    device,
     }
 }
 
-void UniformBufferObject::add_uniform(
-    VkDevice device, 
-    VkPhysicalDevice  physical_device,
-    
-    void*       data,
-                                      int         size,
-                                      ShaderStage shader_stage,
-                                      int         layout)
+void UniformBufferObject::add_uniform(VkDevice         device,
+                                      VkPhysicalDevice physical_device,
+                                      void*            data,
+                                      int              size,
+                                      ShaderStage      shader_stage,
+                                      int              layout,
+                                      ImageView        image_view,
+                                      VkSampler        sampler)
 {
 
+    this->image_view=image_view;
+    this->sampler = sampler;
+
     createDescriptorSetLayout(device, shader_stage, layout);
-
-
 
     uniforms.emplace_back(data, size, shader_stage, layout);
 
@@ -146,15 +146,12 @@ void UniformBufferObject::add_uniform(
         // When creating the buffer I need to know the size it's going to take
         // and the BufferMemory is where we're going to actually store the data.
         // So the buffer points to the BufferMemory
-        Buffer::create(device, physical_device, size,
-                       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        Buffer::create(device, physical_device, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                        uniformBuffers[i], uniformBuffersMemory[i]);
     }
 }
-
-
 
 void UniformBufferObject::update(VkDevice device, uint32_t currentImage)
 {

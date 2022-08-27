@@ -5,6 +5,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     Framebuffer.cpp
     UniformBufferObject.cpp
     Image.cpp
+    ImageView.cpp
     Swapchain.cpp
     RenderPass.cpp
     IndexBuffer.cpp

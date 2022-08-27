@@ -1,12 +1,18 @@
 #pragma once
 
 #include "Buffer.h"
+#include <string>
+
 #include <vulkan/vulkan_core.h>
 
 struct Image
 {
+    VkImage        image;
+    VkDeviceMemory memory;
+
     static inline VkImage        textureImage;
     static inline VkDeviceMemory textureImageMemory;
+
     static inline VkBuffer       stagingBuffer;
     static inline VkDeviceMemory stagingBufferMemory;
 
@@ -99,17 +105,17 @@ struct Image
         Buffer::endSingleTimeCommands(graphicsQueue, commandPool, device, commandBuffer);
     }
 
-    static void create_image(VkDevice              device,
-                             VkPhysicalDevice      physical_device,
-                             uint32_t              width,
-                             uint32_t              height,
-                             VkFormat              format,
-                             VkImageTiling         tiling,
-                             VkImageUsageFlags     usage,
-                             VkMemoryPropertyFlags properties,
-                             VkImage&              image,
-                             VkDeviceMemory&       imageMemory)
+    static Image create_image(VkDevice              device,
+                              VkPhysicalDevice      physical_device,
+                              uint32_t              width,
+                              uint32_t              height,
+                              VkFormat              format,
+                              VkImageTiling         tiling,
+                              VkImageUsageFlags     usage,
+                              VkMemoryPropertyFlags properties)
     {
+        Image image;
+
         VkImageCreateInfo imageInfo {};
         imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType     = VK_IMAGE_TYPE_2D;
@@ -125,13 +131,13 @@ struct Image
         imageInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
         imageInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
 
-        if(vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+        if(vkCreateImage(device, &imageInfo, nullptr, &image.image) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create image!");
         }
 
         VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(device, image, &memRequirements);
+        vkGetImageMemoryRequirements(device, image.image, &memRequirements);
 
         VkMemoryAllocateInfo allocInfo {};
         allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -139,16 +145,18 @@ struct Image
         allocInfo.memoryTypeIndex = Buffer::findMemoryType(
             physical_device, memRequirements.memoryTypeBits, properties);
 
-        if(vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+        if(vkAllocateMemory(device, &allocInfo, nullptr, &image.memory) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to allocate image memory!");
         }
 
-        vkBindImageMemory(device, image, imageMemory, 0);
+        vkBindImageMemory(device, image.image, image.memory, 0);
+        return image;
     }
 
-    static void create_texture_image(VkDevice         device,
-                                     VkPhysicalDevice physical_device,
-                                     VkCommandPool    commandPool,
-                                     VkQueue          graphicsQueue);
+    static Image create_texture_image(VkDevice           device,
+                                      VkPhysicalDevice   physical_device,
+                                      VkCommandPool      commandPool,
+                                      VkQueue            graphicsQueue,
+                                      const std::string& filepath);
 };

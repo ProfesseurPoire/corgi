@@ -10,10 +10,10 @@
 #include <set>
 
 static VkDebugUtilsMessengerEXT debugMessenger;
+static uint32_t                 currentFrame = 0;
 
 std::vector<VkCommandBuffer> command_buffers_;
 
-static uint32_t currentFrame = 0;
 
 void VulkanRenderer::create_command_buffers()
 {
@@ -55,9 +55,7 @@ void VulkanRenderer::create_command_pool()
     poolInfo.queueFamilyIndex = graphic_family_index_.value();
 
     if(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
-    {
         throw std::runtime_error("failed to create command pool!");
-    }
 }
 
 void VulkanRenderer::create_sync_objects()
@@ -108,31 +106,26 @@ VulkanRenderer::VulkanRenderer(SDL_Window* window)
 
     depth_buffer_.initialize(swapchain_, device_, physical_device_.vulkan_device());
 
-    
-
     swapchain_.initialize_framebuffers(depth_buffer_.depthImageView, device_,
                                        render_pass_.render_pass);
-
     
     create_command_buffers();
     create_sync_objects();
+}
 
-    
-    Image::create_texture_image(device_, physical_device_.vulkan_device(), commandPool,
-                                graphicsQueue);
-
-    Texture::create_texture_image_view(device_);
-    Texture::createTextureSampler(device_, physical_device_.vulkan_device());
+Image VulkanRenderer::create_image(const std::string& filepath)
+{
+    return Image::create_texture_image(device_, physical_device_.vulkan_device(), commandPool,
+                                graphicsQueue, filepath);
 }
 
 
-
 UniformBufferObject VulkanRenderer::add_uniform_buffer_object(
-    void* data, int size, UniformBufferObject::ShaderStage shader_stage, int layout)
+    void* data, int size, UniformBufferObject::ShaderStage shader_stage, int layout, ImageView image_view, VkSampler sampler)
 {
     UniformBufferObject ubo;
     ubo.add_uniform(device_, physical_device_.vulkan_device(), data,
-                                       size, shader_stage, layout);
+                                       size, shader_stage, layout, image_view, sampler);
     ubo.create_descriptor_pool(device_);
     ubo.create_descriptor_sets(device_);
 
@@ -147,8 +140,6 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer,
 {
     mesh.ubo.update(device_, currentFrame);
 
-   
-
     VkBuffer     vertexBuffers[] = {mesh.vb.buffer};
     VkDeviceSize offsets[]       = {0};
 
@@ -161,8 +152,6 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer,
                             0, nullptr);
 
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.ib.size), 1, 0, 0, 0);
-
-    
 }
 
 VertexBuffer VulkanRenderer::create_vertex_buffer(std::span<Vertex> vertices)
@@ -192,7 +181,6 @@ void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes)
     // We clear the command buffer
     vkResetCommandBuffer(command_buffers_[currentFrame], 0);
 
-
     VkCommandBufferBeginInfo beginInfo {};
     beginInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags            = 0;          // Optional
@@ -202,8 +190,6 @@ void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes)
     {
         throw std::runtime_error("failed to begin recording command buffer!");
     }
-
-    
 
     VkRenderPassBeginInfo renderPassInfo {};
     renderPassInfo.sType       = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -220,13 +206,10 @@ void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes)
     vkCmdBeginRenderPass(command_buffers_[currentFrame], &renderPassInfo,
                          VK_SUBPASS_CONTENTS_INLINE);
 
-   
-
     // We run our commands
     for(const auto& pair : meshes)
     {
-
-         // So this is the pipeline used
+        // So this is the pipeline used
         vkCmdBindPipeline(command_buffers_[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, pair.second.pipeline);
 
         VkViewport viewport {};
@@ -302,7 +285,6 @@ void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes)
 
     currentFrame = (currentFrame + 1) % VulkanConstants::max_in_flight;
 }
-
 
 struct QueueFamilies
 {

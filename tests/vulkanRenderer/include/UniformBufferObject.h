@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Texture.h"
+#include "ImageView.h"
 
 #include <corgi/math/Matrix.h>
 #include <vulkan/vulkan.hpp>
@@ -30,8 +30,12 @@ struct UniformBufferObject
                      void*            data,
                      int              size,
                      ShaderStage      shader_stage,
-                     int              layout);
+                     int              layout,
+                     ImageView image_view,
+                     VkSampler sampler);
 
+    ImageView image_view;
+    VkSampler sampler;
     std::vector<Uniform> uniforms;
 
     // The descriptor thing

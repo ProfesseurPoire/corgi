@@ -6,20 +6,21 @@
 #include "RenderPass.h"
 #include "Swapchain.h"
 #include "UniformBufferObject.h"
-#include "VulkanConstants.h"
 #include "VertexBuffer.h"
+#include "VulkanConstants.h"
 
 #include <vulkan/vulkan_core.h>
 
 #include <optional>
 #include <vector>
+#include <string>
 
 struct SDL_Window;
 
 struct Mesh
 {
-    IndexBuffer ib;
-    VertexBuffer vb;
+    IndexBuffer         ib;
+    VertexBuffer        vb;
     UniformBufferObject ubo;
 };
 
@@ -42,7 +43,6 @@ public:
     std::vector<VkSemaphore> render_finished_semaphores_;
     std::vector<VkFence>     in_flight_fences_;
 
-
     /**
      * \brief Helper function to create a buffer that stores indexes
      * \param indexes 
@@ -51,7 +51,15 @@ public:
     IndexBuffer create_index_buffer(std::span<const uint16_t> indexes);
 
     VertexBuffer create_vertex_buffer(std::span<Vertex> vertices);
-    Pipeline create_pipeline(const UniformBufferObject& ubo);
+    Pipeline     create_pipeline(const UniformBufferObject& ubo);
+
+    /**
+     * \brief   Loads an image file into a Vulkan Image
+     * \param path 
+     * \return 
+     */
+    Image create_image(const std::string& path);
+    
 
     void create_command_buffers();
     void create_command_pool();
@@ -59,16 +67,17 @@ public:
 
     void draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes);
 
-    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, int current_frame, Mesh mesh, Pipeline pipeline);
+    void recordCommandBuffer(VkCommandBuffer commandBuffer,
+                             uint32_t        imageIndex,
+                             int             current_frame,
+                             Mesh            mesh,
+                             Pipeline        pipeline);
 
     std::vector<UniformBufferObject> uniform_buffer_objects_;
 
     UniformBufferObject add_uniform_buffer_object(
-        void* data,
-                                   int                              size,
-                                   UniformBufferObject::ShaderStage shader_stage,
-                                   int                              layout);
-
+        void* data, int size, UniformBufferObject::ShaderStage shader_stage, int layout,
+         ImageView image_view, VkSampler sampler);
 
     VkQueue graphicsQueue;
     VkQueue presentQueue;

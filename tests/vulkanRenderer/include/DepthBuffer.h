@@ -2,7 +2,7 @@
 
 #include "Image.h"
 #include "Swapchain.h"
-#include "Texture.h"
+#include "ImageView.h"
 
 #include <vulkan/vulkan_core.h>
 
@@ -11,8 +11,7 @@ struct DepthBuffer
 
     void initialize(Swapchain swapchain, VkDevice device, VkPhysicalDevice physical_device);
 
-    VkImage        depthImage;
-    VkDeviceMemory depthImageMemory;
+    Image          depth_image;
     VkImageView    depthImageView;
 
     /**

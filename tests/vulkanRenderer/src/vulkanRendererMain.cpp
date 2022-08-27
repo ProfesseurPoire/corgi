@@ -6,7 +6,7 @@
 #include "IndexBuffer.h"
 #include "PhysicalDevice.h"
 #include "Pipeline.h"
-#include "Texture.h"
+#include "ImageView.h"
 #include "UniformBufferObject.h"
 #include "VertexBuffer.h"
 #include "VulkanConstants.h"
@@ -92,15 +92,34 @@ TestUniform uniform2;
 UniformBufferObject ubo1;
 UniformBufferObject ubo2;
 
+Image image1;
+Image image2;
+
+ImageView image_view_1;
+ImageView image_view_2;
+
+VkSampler sampler_1;
+VkSampler sampler_2;
+
 void create_vulkan_instance()
 {
     vulkan_renderer = new VulkanRenderer(window);
 
+    image1 = vulkan_renderer->create_image("corgi.png");
+    image2 = vulkan_renderer->create_image("goose.png");
+
+    image_view_1 = ImageView::create_texture_image_view(image1, vulkan_renderer->device_);
+    image_view_2 = ImageView::create_texture_image_view(image2, vulkan_renderer->device_);
+
+    sampler_1 = ImageView::createTextureSampler(vulkan_renderer->device_, vulkan_renderer->physical_device_.vulkan_device());
+    sampler_2 = ImageView::createTextureSampler(
+        vulkan_renderer->device_, vulkan_renderer->physical_device_.vulkan_device());
+
     ubo1 = vulkan_renderer->add_uniform_buffer_object(
-        &uniform, sizeof(uniform), UniformBufferObject::ShaderStage::Vertex, 0);
+        &uniform, sizeof(uniform), UniformBufferObject::ShaderStage::Vertex, 0, image_view_1, sampler_1);
 
     ubo2 = vulkan_renderer->add_uniform_buffer_object(
-        &uniform2, sizeof(uniform), UniformBufferObject::ShaderStage::Vertex, 0);
+        &uniform2, sizeof(uniform), UniformBufferObject::ShaderStage::Vertex, 0, image_view_2, sampler_2);
 }
 
 Mesh                                   mesh;
@@ -161,6 +180,7 @@ void main_loop()
 
         uniform.model = corgi::Matrix::translation(-0.50f, 0.0f, 0.0f) *
                         corgi::Matrix::euler_angles(0.0f, 0.0f, time);
+
         uniform.view.identity();
         uniform.proj = corgi::Matrix::ortho(-2, 2, -2, 2, -100, 100);
 
