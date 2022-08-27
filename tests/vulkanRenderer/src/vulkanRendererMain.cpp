@@ -178,13 +178,13 @@ void main_loop()
                          currentTime - startTime)
                          .count();
 
-        uniform.model = corgi::Matrix::translation(-0.50f, 0.0f, 0.0f) *
+        uniform.model = corgi::Matrix::translation(-0.30f, 0.0f, -0.10f) *
                         corgi::Matrix::euler_angles(0.0f, 0.0f, time);
 
         uniform.view.identity();
         uniform.proj = corgi::Matrix::ortho(-2, 2, -2, 2, -100, 100);
 
-        uniform2.model = corgi::Matrix::translation(0.50f, 0.0f, 0.0f)*
+        uniform2.model = corgi::Matrix::translation(0.30f, 0.0f, -0.20f) *
             corgi::Matrix::euler_angles(0.0f, 0.0f, -time);
         uniform2.view.identity();
         uniform2.proj = corgi::Matrix::ortho(-2, 2, -2, 2, -100, 100);

@@ -36,6 +36,8 @@ struct UniformBufferObject
 
     ImageView image_view;
     VkSampler sampler;
+
+
     std::vector<Uniform> uniforms;
 
     // The descriptor thing

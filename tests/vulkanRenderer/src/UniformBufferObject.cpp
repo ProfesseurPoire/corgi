@@ -131,8 +131,8 @@ void UniformBufferObject::add_uniform(VkDevice         device,
                                       VkSampler        sampler)
 {
 
-    this->image_view=image_view;
-    this->sampler = sampler;
+    this->image_view    = image_view;
+    this->sampler       = sampler;
 
     createDescriptorSetLayout(device, shader_stage, layout);
 
