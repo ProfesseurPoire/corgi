@@ -1,0 +1,2 @@
+add_subdirectory(FontExporter)
+add_subdirectory(ResourcesPackager)

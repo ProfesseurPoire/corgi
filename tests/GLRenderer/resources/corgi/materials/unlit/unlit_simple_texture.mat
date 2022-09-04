@@ -1,0 +1,23 @@
+{
+  "Samplers": [
+    {
+      "name": "main_texture"
+    }
+  ],
+    
+  "Uniforms": [
+    {
+      "name":"mvp_matrix",
+      "type":"Matrix"
+    },
+    {
+      "name": "alpha",
+      "type": "float",
+      "value": 1.0
+    }
+  ],
+
+  "is_lit": false,
+  "vertex_shader":   "corgi/materials/unlit/unlit_simple_texture_vs.glsl",
+  "fragment_shader": "corgi/materials/unlit/unlit_simple_texture_fs.glsl"
+}

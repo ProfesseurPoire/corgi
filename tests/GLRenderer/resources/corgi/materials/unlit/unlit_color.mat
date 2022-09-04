@@ -1,0 +1,12 @@
+{
+	"is_lit": false,
+
+	"Uniforms": [
+		{
+			"name": "main_color",
+			"type": "Vec4"
+		}
+	],
+	"vertex_shader" :   "corgi/materials/unlit/unlit_color_vs.glsl",
+	"fragment_shader" : "corgi/materials/unlit/unlit_color_fs.glsl"
+}

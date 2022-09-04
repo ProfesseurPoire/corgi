@@ -51,7 +51,7 @@ Shader::Shader(const std::string& path, const std::string& identifier)
 
         glGetShaderInfoLog(id_, max_length, &max_length, &errorLog[0]);
 
-        std::string str = " Error while loading " + path + "shader";
+        std::string str = " Error while loading " + path + " shader";
 
         log_error(str.c_str());
         log_error(errorLog.c_str());

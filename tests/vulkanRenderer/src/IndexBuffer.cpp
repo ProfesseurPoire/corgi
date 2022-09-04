@@ -1,11 +1,11 @@
 #include "IndexBuffer.h"
 
-#include "Buffer.h"
+#include <corgi/rendering/vulkan/Buffer.h>
 
-void IndexBuffer::create(const VkQueue             queue,
-                         const VkCommandPool       commandPool,
-                         const VkDevice            device,
-                         const VkPhysicalDevice    physical_device,
+void IndexBuffer::create(const VkQueue                   queue,
+                         const VkCommandPool             commandPool,
+                         const VkDevice                  device,
+                         const VkPhysicalDevice          physical_device,
                          const std::span<const uint16_t> indexes)
 {
     const VkDeviceSize bufferSize = sizeof(indexes[0]) * indexes.size();

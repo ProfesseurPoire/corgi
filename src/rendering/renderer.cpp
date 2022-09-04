@@ -11,6 +11,7 @@
 #include <corgi/rendering/FrameBuffer.h>
 #include <corgi/rendering/Material.h>
 #include <corgi/rendering/ShaderProgram.h>
+#include <corgi/rendering/gl/GLUniformBufferObject.h>
 #include <corgi/rendering/renderer.h>
 #include <corgi/rendering/texture.h>
 #include <corgi/resources/Mesh.h>
@@ -378,7 +379,7 @@ static int cmpfunc(const void* a, const void* b)
 
 // TODO : This probably needs more granularity, make some stuff into functions
 // because it's hard to understand what's actually going on here
-void Renderer::draw_scene(Window& window)
+void Renderer::draw_scene(Window& window, Scene& scene)
 {
     // We simply don't draw anything when the window is minimized
     // because opengl functions don't work anymore
@@ -386,7 +387,8 @@ void Renderer::draw_scene(Window& window)
     if(window.isMinimized())
         return;
 
-    auto& scene = Game::instance().scene();
+    // Lots of things aren't really right here, like getting the scene from the
+    // game etc
 
     _current_scene = &scene;
 
@@ -676,6 +678,31 @@ static void set_stencil_enum(GLenum& e, StencilOp v)
     }
 }
 
+UniformBufferObject* Renderer::create_ubo(UniformBufferObject::ShaderStage shader_stage)
+{
+    auto ubo = new GLUniformBufferObject(shader_stage);
+    ubos_.emplace_back(ubo);
+
+    //glUniformBlockBinding(shader_program_id, 0, 0);
+
+    // GLint blockSize;
+    // glGetActiveUniformBl =
+    //     ockiv(shader_program_id, 0, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
+
+    // GLubyte* blockBuffer;
+    // blockBuffer = (GLubyte*)malloc(blockSize);
+
+    // // We must make a buffer and put the data inside it
+
+    // glBindBuffer(GL_UNIFORM_BUFFER, uboHandle);
+    // glBufferData(GL_UNIFORM_BUFFER, blockSize, blockBuffer, GL_DYNAMIC_DRAW);
+
+    // // After that I need to use this
+    // glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboHandle);
+
+    return ubos_.back().get();
+}
+
 void Renderer::initialize_opengl_state()
 {
     if(_opengl_state.write_color)
@@ -952,35 +979,42 @@ void Renderer::begin_material(const Material& material)
     //		set_uniform("camera_position", _current_camera->entity().transform().world_position());
     //}
 
-    for(const auto& uniform : material._uniforms)
-    {
-        switch(uniform.type)
-        {
-            case Material::UniformType::Int:
-                glUniform1i(uniform.location, uniform.data.int_value);
-                break;
+    // for(const auto& uniform : material._uniforms)
+    // {
+    //     switch(uniform.type)
+    //     {
+    //         case Material::UniformType::Int:
+    //             glUniform1i(uniform.location, uniform.data.int_value);
+    //             break;
 
-            case Material::UniformType::Unsigned:
-                glUniform1ui(uniform.location, uniform.data._unsigned_value);
-                break;
+    //         case Material::UniformType::Unsigned:
+    //             glUniform1ui(uniform.location, uniform.data._unsigned_value);
+    //             break;
 
-            case Material::UniformType::Float:
-                glUniform1f(uniform.location, uniform.data.value.x);
-                break;
+    //         case Material::UniformType::Float:
+    //             glUniform1f(uniform.location, uniform.data.value.x);
+    //             break;
 
-            case Material::UniformType::Vec2:
-                glUniform2fv(uniform.location, 1, &uniform.data.value.x);
-                break;
+    //         case Material::UniformType::Vec2:
+    //             glUniform2fv(uniform.location, 1, &uniform.data.value.x);
+    //             break;
 
-            case Material::UniformType::Vec3:
-                glUniform3fv(uniform.location, 1, &uniform.data.value.x);
-                break;
+    //         case Material::UniformType::Vec3:
+    //             glUniform3fv(uniform.location, 1, &uniform.data.value.x);
+    //             break;
 
-            case Material::UniformType::Vec4:
-                glUniform4fv(uniform.location, 1, &uniform.data.value.x);
-                break;
-        }
-    }
+    //         case Material::UniformType::Vec4:
+    //             glUniform4fv(uniform.location, 1, &uniform.data.value.x);
+    //             break;
+    //         case Material::UniformType::Matrix:
+    //             glUniformMatrix4fv(uniform.location, 1, GL_FALSE,
+    //                                uniform.data.matrix.data());
+    //             break;
+    //     }
+    // }
+
+    if(material.ubo)
+        material.ubo->use();
 }
 
 void Renderer::set_uniform(unsigned id, const std::string& name, float v)
@@ -1030,6 +1064,41 @@ void Renderer::draw(const RendererComponent& component,
 {
     begin_material(material);
     draw_mesh(component._mesh.get(), _view_projection_matrix * transform.world_matrix());
+}
+
+void Renderer::draw(const Mesh& mesh, const Material& material)
+{
+    begin_material(material);
+
+    // Send our transformation to the currently bound shader, in the "MVP" uniform
+    // This is done in the main loop since each model will have a different MVP matrix (At least for the M part)
+
+    // So somehow I need to pass that here?
+    //glUniformMatrix4fv(model_matrix_id, 1, GL_FALSE, matrix.data());
+
+    glBindVertexArray(mesh.vao_id_);
+
+    switch(mesh.primitive_type())
+    {
+        case PrimitiveType::Triangles:
+            //profiler_.draw_calls++;
+            //profiler_.triangle_count += mesh->indexes().size()/3;
+            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mesh.indexes_.size()),
+                           GL_UNSIGNED_INT, (void*)0);
+            break;
+
+        case PrimitiveType::Quads:
+            //profiler_.draw_calls++;
+            //profiler_.triangle_count += mesh->indexes().size()/4 *2;
+            glDrawElements(GL_QUADS, static_cast<GLsizei>(mesh.indexes_.size()),
+                           GL_UNSIGNED_INT, (void*)0);
+            break;
+
+        case PrimitiveType::Lines:
+            glDrawElements(GL_LINES, static_cast<GLsizei>(mesh.indexes().size()),
+                           GL_UNSIGNED_INT, (void*)0);
+            break;
+    }
 }
 
 void Renderer::draw_mesh(const Mesh* mesh, const Matrix& matrix)

@@ -1,4 +1,9 @@
 target_sources(${PROJECT_NAME} PRIVATE
+	gl/GLUniformBufferObject.cpp
+	vulkan/VulkanUniformBufferObject.cpp
+	vulkan/ImageView.cpp
+	vulkan/Image.cpp
+	AbstractRenderer.cpp
 	Color.cpp
 	DrawList.cpp
 	FrameBuffer.cpp
@@ -10,4 +15,5 @@ target_sources(${PROJECT_NAME} PRIVATE
 	ShaderProgram.cpp
 	Sprite.cpp
 	texture.cpp
+	VulkanRenderer.cpp
 	WindowDrawList.cpp)

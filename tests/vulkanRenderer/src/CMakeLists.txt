@@ -3,9 +3,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     vulkanRendererMain.cpp
     PhysicalDevice.cpp
     Framebuffer.cpp
-    UniformBufferObject.cpp
-    Image.cpp
-    ImageView.cpp
     Material.cpp
     Swapchain.cpp
     RenderPass.cpp

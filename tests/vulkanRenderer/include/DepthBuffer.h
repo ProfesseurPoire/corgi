@@ -1,18 +1,19 @@
 #pragma once
 
-#include "Image.h"
 #include "Swapchain.h"
-#include "ImageView.h"
 
+#include <corgi/rendering/vulkan/Image.h>
+#include <corgi/rendering/vulkan/ImageView.h>
 #include <vulkan/vulkan_core.h>
 
 struct DepthBuffer
 {
 
-    void initialize(Swapchain swapchain, VkDevice device, VkPhysicalDevice physical_device);
+    void
+    initialize(Swapchain swapchain, VkDevice device, VkPhysicalDevice physical_device);
 
-    Image          depth_image;
-    VkImageView    depthImageView;
+    Image       depth_image;
+    VkImageView depthImageView;
 
     /**
      * \brief Select the "best" format to use for the depth buffer
@@ -40,10 +41,12 @@ struct DepthBuffer
             // Optimal means it's implementation specific
 
             // We make sure that the format can be used as a depth buffer attachment by the GPU
-            if(tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+            if(tiling == VK_IMAGE_TILING_LINEAR &&
+               (props.linearTilingFeatures & features) == features)
                 return format;
 
-            if(tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+            if(tiling == VK_IMAGE_TILING_OPTIMAL &&
+               (props.optimalTilingFeatures & features) == features)
                 return format;
         }
         throw std::runtime_error("failed to find supported format!");
@@ -59,11 +62,9 @@ struct DepthBuffer
     {
         // We need a format with _D for the depth buffer
         return find_supported_format(physical_device,
-                                   {
-                                       VK_FORMAT_D32_SFLOAT,
-                                       VK_FORMAT_D32_SFLOAT_S8_UINT,
-                                        VK_FORMAT_D24_UNORM_S8_UINT},
-                                        VK_IMAGE_TILING_OPTIMAL,
-                                   VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+                                     {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
+                                      VK_FORMAT_D24_UNORM_S8_UINT},
+                                     VK_IMAGE_TILING_OPTIMAL,
+                                     VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
     }
 };

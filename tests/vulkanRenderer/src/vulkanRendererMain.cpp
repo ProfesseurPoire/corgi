@@ -1,21 +1,20 @@
 #define VK_USE_PLATFORM_WIN32_KHR
-#include "Buffer.h"
 #include "DepthBuffer.h"
 #include "Framebuffer.h"
-#include "Image.h"
 #include "IndexBuffer.h"
 #include "PhysicalDevice.h"
 #include "Pipeline.h"
-#include "ImageView.h"
-#include "UniformBufferObject.h"
 #include "VertexBuffer.h"
-#include "VulkanConstants.h"
 #include "VulkanRenderer.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
 #include <SDL2/SDL_vulkan.h>
 #include <Swapchain.h>
+#include <corgi/rendering/VulkanRenderer.h>
+#include <corgi/rendering/vulkan/VulkanConstants.h>
+#include <corgi/rendering/vulkan/VulkanUniformBufferObject.h>
+#include <corgi/resources/image.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
@@ -89,8 +88,8 @@ struct TestUniform
 TestUniform uniform;
 TestUniform uniform2;
 
-UniformBufferObject ubo1;
-UniformBufferObject ubo2;
+corgi::UniformBufferObject* ubo1;
+corgi::UniformBufferObject* ubo2;
 
 Image image1;
 Image image2;
@@ -101,32 +100,54 @@ ImageView image_view_2;
 VkSampler sampler_1;
 VkSampler sampler_2;
 
+corgi::VulkanRenderer vr;
+
 void create_vulkan_instance()
 {
     vulkan_renderer = new VulkanRenderer(window);
 
-    image1 = vulkan_renderer->create_image("corgi.png");
-    image2 = vulkan_renderer->create_image("goose.png");
+    image1 = vulkan_renderer->create_image("corgi.img");
+    image2 = vulkan_renderer->create_image("enemy.img");
 
     image_view_1 = ImageView::create_texture_image_view(image1, vulkan_renderer->device_);
     image_view_2 = ImageView::create_texture_image_view(image2, vulkan_renderer->device_);
 
-    sampler_1 = ImageView::createTextureSampler(vulkan_renderer->device_, vulkan_renderer->physical_device_.vulkan_device());
+    sampler_1 = ImageView::createTextureSampler(
+        vulkan_renderer->device_, vulkan_renderer->physical_device_.vulkan_device());
     sampler_2 = ImageView::createTextureSampler(
         vulkan_renderer->device_, vulkan_renderer->physical_device_.vulkan_device());
 
-    ubo1 = vulkan_renderer->add_uniform_buffer_object(
-        &uniform, sizeof(uniform), UniformBufferObject::ShaderStage::Vertex, 0, image_view_1, sampler_1);
+    vr.physical_device_ = vulkan_renderer->physical_device_.vulkan_device();
+    vr.device_          = vulkan_renderer->device_;
 
-    ubo2 = vulkan_renderer->add_uniform_buffer_object(
-        &uniform2, sizeof(uniform), UniformBufferObject::ShaderStage::Vertex, 0, image_view_2, sampler_2);
+    ubo1 = vr.create_ubo(corgi::UniformBufferObject::ShaderStage::Vertex);
+    ubo2 = vr.create_ubo(corgi::UniformBufferObject::ShaderStage::Vertex);
+
+    dynamic_cast<corgi::VulkanUniformBufferObject*>(ubo1)->image_view = image_view_1;
+    dynamic_cast<corgi::VulkanUniformBufferObject*>(ubo1)->sampler    = sampler_1;
+
+    dynamic_cast<corgi::VulkanUniformBufferObject*>(ubo2)->image_view = image_view_2;
+    dynamic_cast<corgi::VulkanUniformBufferObject*>(ubo2)->sampler    = sampler_2;
+
+    ubo1->set_data(&uniform, sizeof(uniform));
+    ubo2->set_data(&uniform2, sizeof(uniform));
+
+    // ubo1 =
+    //     vr.create_ubo(&uniform, sizeof(uniform), UniformBufferObject::ShaderStage::Vertex,
+    //                   0, image_view_1, sampler_1);
+
+    // ubo2 = vr.create_ubo(&uniform2, sizeof(uniform),
+    //                      UniformBufferObject::ShaderStage::Vertex, 0, image_view_2,
+    //                      sampler_2);
 }
 
-Mesh                                   mesh;
-Mesh                                   mesh2;
-Pipeline                               pipeline;
-Pipeline                               pipeline2;
-std::vector<std::pair<Mesh, Pipeline>> meshes;
+Mesh mesh;
+Mesh mesh2;
+
+Pipeline* pipeline;
+Pipeline* pipeline2;
+
+std::vector<std::pair<Mesh, Pipeline*>> meshes;
 
 void init_vulkan()
 {
@@ -141,13 +162,14 @@ void init_vulkan()
     mesh.vb  = vulkan_renderer->create_vertex_buffer(vertices);
     mesh.ib  = vulkan_renderer->create_index_buffer(indexes);
     mesh.ubo = ubo1;
-    pipeline = vulkan_renderer->create_pipeline(mesh.ubo);
+    pipeline = &vulkan_renderer->create_pipeline(
+        *dynamic_cast<corgi::VulkanUniformBufferObject*>(mesh.ubo));
 
     mesh2.vb  = vulkan_renderer->create_vertex_buffer(vertices);
     mesh2.ib  = vulkan_renderer->create_index_buffer(indexes);
     mesh2.ubo = ubo2;
-    pipeline2  = vulkan_renderer->create_pipeline(mesh2.ubo);
-
+    pipeline2 = &vulkan_renderer->create_pipeline(
+        *dynamic_cast<corgi::VulkanUniformBufferObject*>(mesh2.ubo));
 
     meshes.push_back({mesh, pipeline});
     meshes.push_back({mesh2, pipeline2});
@@ -185,7 +207,7 @@ void main_loop()
         uniform.proj = corgi::Matrix::ortho(-2, 2, -2, 2, -100, 100);
 
         uniform2.model = corgi::Matrix::translation(0.30f, 0.0f, -0.20f) *
-            corgi::Matrix::euler_angles(0.0f, 0.0f, -time);
+                         corgi::Matrix::euler_angles(0.0f, 0.0f, -time);
         uniform2.view.identity();
         uniform2.proj = corgi::Matrix::ortho(-2, 2, -2, 2, -100, 100);
 

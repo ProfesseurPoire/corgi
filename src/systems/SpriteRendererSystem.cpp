@@ -74,20 +74,20 @@ void SpriteRendererSystem::initializeUiMesh() {}
 
 void SpriteRendererSystem::initializeSpriteMesh()
 {
-    /*initializeUiMesh();
+    //initializeUiMesh();
 
-        if(!sprite_mesh)
-        {
-            std::vector<float> vertices({-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -1.0f,
-                                         0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-                                         1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f});
+    if(!sprite_meshes)
+    {
+        std::vector<float> vertices({-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -1.0f,
+                                     0.0f,  1.0f,  0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+                                     1.0f,  -1.0f, 1.0f, 0.0f, 0.0f, 1.0f});
 
-            std::vector<unsigned> indexes({0, 1, 2, 0, 2, 3});
+        std::vector<unsigned> indexes({0, 1, 2, 0, 2, 3});
 
-            sprite_mesh =
-                Mesh::new_standard_2D_mesh(std::move(vertices), std::move(indexes));
-            sprite_mesh->build_bounding_volumes();
-        }*/
+        sprite_meshes =
+            Mesh::new_standard_2D_mesh(std::move(vertices), std::move(indexes));
+        sprite_meshes->build_bounding_volumes();
+    }
 }
 
 void SpriteRendererSystem::before_update(float elapsed_time)

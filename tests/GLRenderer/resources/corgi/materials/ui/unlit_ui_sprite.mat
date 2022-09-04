@@ -1,0 +1,73 @@
+{
+  "Samplers": [
+    {
+      "name": "main_texture"
+    }
+  ],
+
+  "Uniforms": [
+    {
+      "name": "alpha",
+      "type": "float",
+      "value": 1.0
+    },
+    {
+      "name": "texture_width",
+      "type": "uint",
+      "value": 0
+    },
+    {
+      "name": "texture_height",
+      "type": "uint",
+      "value": 0
+    },
+    {
+      "name": "offset_x",
+      "type": "uint",
+      "value": 0
+    },
+    {
+      "name": "offset_y",
+      "type": "uint",
+      "value": 0
+    },
+    {
+      "name": "sprite_width",
+      "type": "uint",
+      "value": 0
+    },
+    {
+      "name": "sprite_height",
+      "type": "uint",
+      "value": 0
+    },
+    {
+      "name": "pivot_x",
+      "type": "float",
+      "value": 0.0
+    },
+    {
+      "name": "pivot_y",
+      "type": "float",
+      "value": 0.0
+    },
+    {
+      "name": "flip_x",
+      "type": "int",
+      "value": 0
+    },
+    {
+      "name": "flat_color",
+      "type": "Vec4"
+    },
+    {
+      "name": "use_flat_color",
+      "type": "int",
+      "value": 0 
+    }
+  ],
+
+  "is_lit": false,
+  "vertex_shader": "corgi/materials/ui/unlit_ui_sprite_vs.glsl",
+  "fragment_shader": "corgi/materials/ui/unlit_ui_sprite_fs.glsl"
+}

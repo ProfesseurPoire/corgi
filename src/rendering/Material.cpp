@@ -26,6 +26,20 @@ void Material::set_uniform(const std::string& name, int value)
                            value);
 }
 
+void Material::set_uniform(const std::string& name, Matrix value)
+{
+    for(auto& uniform : _uniforms)
+    {
+        if(uniform.name == name)
+        {
+            uniform.data.matrix = value;
+            return;
+        }
+    }
+    _uniforms.emplace_back(name, glGetUniformLocation(shader_program->id(), name.c_str()),
+                           value);
+}
+
 void Material::set_uniform(const char* name, int value)
 {
     for(auto& v : _uniforms)
@@ -683,6 +697,10 @@ Material::Material(const std::string& path, const std::string& relative_name)
             if(value["type"] == "Vec4")
             {
                 set_uniform(value["name"].GetString(), Vec4());
+            }
+            if(value["type"] == "Matrix")
+            {
+                set_uniform(value["name"].GetString(), Matrix());
             }
         }
     }

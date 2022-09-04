@@ -426,7 +426,8 @@ void Game::run()
 
             // Not sure if I should pack swap_buffer with it or not
             profiler_.renderer_counter_.start();
-            renderer().draw_scene(*window.get());
+            renderer().draw_scene(*window.get(),
+                                  dynamic_cast<Scene&>(Game::instance().scene()));
             profiler_.renderer_counter_.tick();
 
             window->swap_buffers();

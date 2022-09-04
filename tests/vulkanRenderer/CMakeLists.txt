@@ -39,4 +39,11 @@ if(UNIX)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${CONAN_LIBS} corgi-math ${VULKAN_SDK_PATH}/Lib/vulkan-1.lib)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${CONAN_LIBS} CorgiEngine corgi-math ${VULKAN_SDK_PATH}/Lib/vulkan-1.lib)
+
+add_custom_target(
+    RunResourcePackager ALL
+    COMMAND ResourcesPackager -I ${CMAKE_CURRENT_SOURCE_DIR}/resources/ -O ${CMAKE_CURRENT_SOURCE_DIR}/src/
+    COMMENT "Running Resource Packager")
+
+add_dependencies(${PROJECT_NAME} RunResourcePackager)

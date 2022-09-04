@@ -1,10 +1,12 @@
 #pragma once
 
 #include <corgi/containers/Vector.h>
+#include <corgi/math/Matrix.h>
 #include <corgi/math/Vec2.h>
 #include <corgi/math/Vec3.h>
 #include <corgi/math/Vec4.h>
 #include <corgi/rendering/ShaderProgram.h>
+#include <corgi/rendering/UniformBufferObject.h>
 #include <corgi/resources/Resource.h>
 #include <corgi/utils/Color.h>
 #include <corgi/utils/Flags.h>
@@ -94,6 +96,8 @@ public:
     void set_texture(int index, const Texture& texture, const std::string& name);
     void set_texture(int index, const Texture& texture);
 
+    UniformBufferObject* ubo;
+
     // TODO : Set all variables privates
 
     struct TextureUniform
@@ -156,6 +160,8 @@ public:
     void set_uniform(const std::string& name, float x, float y);
     void set_uniform(int index, const std::string& name, float x, float y);
 
+    void set_uniform(const std::string& name, Matrix value);
+
     void set_uniform(const std::string& name, Vec3 value);
     void set_uniform(const std::string& name, float x, float y, float z);
 
@@ -176,7 +182,8 @@ public:
         Float,
         Vec2,
         Vec3,
-        Vec4
+        Vec4,
+        Matrix
     };
 
     //#pragma warning(disable : 4582)
@@ -192,9 +199,10 @@ public:
 
         union Data
         {
-            int      int_value;
-            unsigned _unsigned_value;
-            Vec4     value;
+            int           int_value;
+            unsigned      _unsigned_value;
+            Vec4          value;
+            corgi::Matrix matrix;
 
             explicit Data()
                 : value(Vec4(0.0f, 0.0f, 0.0f, 0.0f))
@@ -208,6 +216,11 @@ public:
 
             explicit Data(unsigned v)
                 : _unsigned_value(v)
+            {
+            }
+
+            explicit Data(Matrix m)
+                : matrix(m)
             {
             }
 
@@ -273,6 +286,14 @@ public:
             type     = UniformType::Vec4;
         }
 
+        explicit Uniform(const std::string& p_name, int p_location, Matrix m)
+            : data(m)
+        {
+            std::strcpy(name, p_name.c_str());
+            location = p_location;
+            type     = UniformType::Matrix;
+        }
+
         [[nodiscard]] bool operator==(const Uniform& other) const noexcept
         {
             if(location != other.location)
@@ -293,6 +314,9 @@ public:
             if(data.value != other.data.value)
                 return false;
 
+            if(data.matrix != other.data.matrix)
+                return false;
+
             return true;
         }
 
@@ -301,6 +325,10 @@ public:
 		 */
         [[nodiscard]] bool operator<(const Uniform& other) const noexcept
         {
+
+            // TODO : Probably check that out a bit, with addition of the matrix
+            // this probably doesn't work anymore
+
             if(location < other.location)
                 return true;
 

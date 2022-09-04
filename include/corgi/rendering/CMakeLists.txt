@@ -1,4 +1,6 @@
 target_sources(${PROJECT_NAME} PUBLIC
+	vulkan/ImageView.h
+	AbstractRenderer.h
 	Color.h
 	DrawList.h
 	FrameBuffer.h
@@ -11,4 +13,5 @@ target_sources(${PROJECT_NAME} PUBLIC
 	Shaders.h
 	Sprite.h
 	texture.h
+	VulkanRenderer.h
 	WindowDrawList.h)

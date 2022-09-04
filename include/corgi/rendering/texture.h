@@ -173,8 +173,8 @@ public:
     [[nodiscard]] MagFilter mag_filter() const noexcept;
 
     /*!
-		 * @brief Returns the wrap value for the s coordinate
-		 */
+     * @brief Returns the wrap value for the s coordinate
+     */
     [[nodiscard]] Wrap wrap_s() const noexcept;
 
     /*!
@@ -189,43 +189,43 @@ public:
     void height(unsigned height) noexcept;
 
     /*!
-		 *	@brief Change the filter used for pixel minification
-		 *	
-		 *	Don't forget to call the @ref apply_changes() function
-		 *	after you changed this filter.
-		 * 
-		 *  @param[in] filter : Potential values are 
-		 *						* MinFilter::Nearest
-		 *						* MinFilter::Linear
-		 *						* MinFilter::NearestMipmapNearest
-		 *						* MinFilter::NearestMipmapLinear
-		 *						* MinFilter::LinearMipmapLinear
-		 *						* MinFilter::LinearMipmapNearest
-		 */
+     *	@brief Change the filter used for pixel minification
+     *	
+     *	Don't forget to call the @ref apply_changes() function
+     *	after you changed this filter.
+     * 
+     *  @param[in] filter : Potential values are 
+     *						* MinFilter::Nearest
+     *						* MinFilter::Linear
+     *						* MinFilter::NearestMipmapNearest
+     *						* MinFilter::NearestMipmapLinear
+     *						* MinFilter::LinearMipmapLinear
+     *						* MinFilter::LinearMipmapNearest
+     */
     void min_filter(MinFilter filter) noexcept;
 
     /*! 
-		 *	@brief Changes the filter used for pixel magnification
-		 * 
-		 *  Don't forget to call the @ref apply_changes() function 
-		 *	after you changed a filter
-		 *  
-		 *  @param[in] filter : Potential Values are
-		 *						* MagFilter::Nearest 
-		 *						* MagFilter::Linear
-		 */
+     *	@brief Changes the filter used for pixel magnification
+     * 
+     *  Don't forget to call the @ref apply_changes() function 
+     *	after you changed a filter
+     *  
+     *  @param[in] filter : Potential Values are
+     *						* MagFilter::Nearest 
+     *						* MagFilter::Linear
+     */
     void mag_filter(MagFilter filter) noexcept;
 
     /*! 
-		 *	@brief Changes the way the s coordinate is wrapped
-		 *  
-		 *  @param[in] wrap :	Values are 
-		 *  					* Wrap::ClampToBorder,
-		 *  					* Wrap::ClampToEdge,
-		 *  					* Wrap::MirroredRepeat,
-		 *  					* Wrap::MirrorClampToEdge,
-		 *  					* Wrap::Repeat
-		 */
+     *	@brief Changes the way the s coordinate is wrapped
+     *  
+     *  @param[in] wrap :	Values are 
+     *  					* Wrap::ClampToBorder,
+     *  					* Wrap::ClampToEdge,
+     *  					* Wrap::MirroredRepeat,
+     *  					* Wrap::MirrorClampToEdge,
+     *  					* Wrap::Repeat
+     */
     void wrap_s(Wrap wrap) noexcept;
 
     /*! 

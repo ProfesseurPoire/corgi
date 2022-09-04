@@ -14,7 +14,6 @@ static uint32_t                 currentFrame = 0;
 
 std::vector<VkCommandBuffer> command_buffers_;
 
-
 void VulkanRenderer::create_command_buffers()
 {
     command_buffers_.resize(VulkanConstants::max_in_flight);
@@ -32,11 +31,12 @@ void VulkanRenderer::create_command_buffers()
     }
 }
 
-Pipeline VulkanRenderer::create_pipeline(const UniformBufferObject& ubo)
+Pipeline& VulkanRenderer::create_pipeline(const corgi::VulkanUniformBufferObject& ubo)
 {
-    Pipeline pipeline;
-    pipeline.initialize(device_, render_pass_.render_pass, swapchain_, ubo);
-    return pipeline;
+    return *pipelines_
+                .emplace_back(std::make_unique<Pipeline>(
+                    device_, render_pass_.render_pass, swapchain_, ubo))
+                .get();
 }
 
 IndexBuffer VulkanRenderer::create_index_buffer(std::span<const uint16_t> indexes)
@@ -100,7 +100,6 @@ VulkanRenderer::VulkanRenderer(SDL_Window* window)
     swapchain_.initialize(physical_device_.vulkan_device(), device_, surface_, window_,
                           graphic_family_index_, present_family_index_);
 
-    
     render_pass_.initialize(device_, physical_device_.vulkan_device(),
                             swapchain_.create_info.imageFormat);
 
@@ -108,48 +107,35 @@ VulkanRenderer::VulkanRenderer(SDL_Window* window)
 
     swapchain_.initialize_framebuffers(depth_buffer_.depthImageView, device_,
                                        render_pass_.render_pass);
-    
+
     create_command_buffers();
     create_sync_objects();
 }
 
 Image VulkanRenderer::create_image(const std::string& filepath)
 {
-    return Image::create_texture_image(device_, physical_device_.vulkan_device(), commandPool,
-                                graphicsQueue, filepath);
-}
-
-
-UniformBufferObject VulkanRenderer::add_uniform_buffer_object(
-    void* data, int size, UniformBufferObject::ShaderStage shader_stage, int layout, ImageView image_view, VkSampler sampler)
-{
-    UniformBufferObject ubo;
-    ubo.add_uniform(device_, physical_device_.vulkan_device(), data,
-                                       size, shader_stage, layout, image_view, sampler);
-    ubo.create_descriptor_pool(device_);
-    ubo.create_descriptor_sets(device_);
-
-    return ubo;
+    return Image::create_texture_image(device_, physical_device_.vulkan_device(),
+                                       commandPool, graphicsQueue, filepath);
 }
 
 void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer,
                                          uint32_t        imageIndex,
-                                        int currentFrame,
+                                         int             currentFrame,
                                          Mesh            mesh,
-                                         Pipeline        pipeline)
+                                         Pipeline&       pipeline)
 {
-    mesh.ubo.update(device_, currentFrame);
+    mesh.ubo->update(currentFrame);
 
     VkBuffer     vertexBuffers[] = {mesh.vb.buffer};
     VkDeviceSize offsets[]       = {0};
 
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, mesh.ib.indexBuffer, 0,
-                         VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(commandBuffer, mesh.ib.indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            pipeline.pipeline_layout, 0, 1, &mesh.ubo.descriptorSets[0],
-                            0, nullptr);
+    vkCmdBindDescriptorSets(
+        commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.pipeline_layout, 0, 1,
+        &dynamic_cast<corgi::VulkanUniformBufferObject*>(mesh.ubo)->descriptorSets[0], 0,
+        nullptr);
 
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.ib.size), 1, 0, 0, 0);
 }
@@ -160,7 +146,7 @@ VertexBuffer VulkanRenderer::create_vertex_buffer(std::span<Vertex> vertices)
                                               vertices);
 }
 
-void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes)
+void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline*>>& meshes)
 {
     // Before drawing, we need to wait for the fence to be available
     // Vulkan is designed with multithreading in mind, fences are like mutex
@@ -200,8 +186,8 @@ void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes)
     renderPassInfo.renderArea.extent = swapchain_.create_info.imageExtent;
 
     std::array<VkClearValue, 2> clearValues {};
-    clearValues[0].color           = {{0.0f, 0.0f, 0.0f, 1.0f}};
-    clearValues[1].depthStencil    = {1.0f, 0};
+    clearValues[0].color        = {{0.0f, 0.0f, 0.0f, 1.0f}};
+    clearValues[1].depthStencil = {1.0f, 0};
 
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues    = clearValues.data();
@@ -213,7 +199,8 @@ void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes)
     for(const auto& pair : meshes)
     {
         // So this is the pipeline used
-        vkCmdBindPipeline(command_buffers_[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, pair.second.pipeline);
+        vkCmdBindPipeline(command_buffers_[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          pair.second->pipeline);
 
         VkViewport viewport {};
         viewport.x        = 0.0f;
@@ -229,10 +216,8 @@ void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline>>& meshes)
         scissor.extent = swapchain_.create_info.imageExtent;
         vkCmdSetScissor(command_buffers_[currentFrame], 0, 1, &scissor);
 
-        recordCommandBuffer(command_buffers_[currentFrame], imageIndex, currentFrame, pair.first,
-                            pair.second);
-
-
+        recordCommandBuffer(command_buffers_[currentFrame], imageIndex, currentFrame,
+                            pair.first, *pair.second);
     }
     vkCmdEndRenderPass(command_buffers_[currentFrame]);
 

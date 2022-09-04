@@ -1,0 +1,12 @@
+{
+    "Configurations": [
+        {
+          "font-size": 12,
+          "render_mode": "light"
+        },
+        {
+          "font-size": 60,
+          "render_mode": "mono"
+        }
+    ]
+}

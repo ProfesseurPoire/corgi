@@ -88,7 +88,8 @@ int filterEvent(void* userdata, SDL_Event* event)
             window->resizeWithoutEvent(event->window.data1, event->window.data2);
             window->resized(event->window.data1, event->window.data2);
 
-            Game::instance().renderer().draw_scene(*window);
+            Game::instance().renderer().draw_scene(
+                *window, dynamic_cast<Scene&>(Game::instance().scene()));
             window->swap_buffers();
         }
 

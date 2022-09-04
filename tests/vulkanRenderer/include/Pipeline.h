@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Swapchain.h"
-#include "UniformBufferObject.h"
 #include "VertexBuffer.h"
 
+#include <corgi/rendering/vulkan/VulkanUniformBufferObject.h>
 #include <vulkan/vulkan.hpp>
 
 #include <fstream>
@@ -16,6 +16,8 @@
 class Pipeline
 {
 public:
+    VkDevice device_;
+
     static inline VkShaderModule create_shader_module(VkDevice                 device,
                                                       const std::vector<char>& code)
     {
@@ -54,8 +56,15 @@ public:
     VkPipelineLayout pipeline_layout;
     VkPipeline       pipeline;
 
-    void initialize(VkDevice device, VkRenderPass render_pass, const Swapchain& swapchain, const UniformBufferObject& uniform_buffer_object)
+    ~Pipeline() { vkDestroyPipeline(device_, pipeline, nullptr); }
+
+    Pipeline(VkDevice                                device,
+             VkRenderPass                            render_pass,
+             const Swapchain&                        swapchain,
+             const corgi::VulkanUniformBufferObject& uniform_buffer_object)
+        : device_(device)
     {
+
         auto vertShaderCode = read_file("shaders/vert.spv");
         auto fragShaderCode = read_file("shaders/frag.spv");
 
@@ -175,12 +184,11 @@ public:
         colorBlending.blendConstants[2] = 0.0f;    // Optional
         colorBlending.blendConstants[3] = 0.0f;    // Optional
 
-
         VkPipelineDepthStencilStateCreateInfo depthStencil {};
         depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-        depthStencil.depthTestEnable  = VK_TRUE;
-        depthStencil.depthWriteEnable = VK_TRUE;
-        depthStencil.depthCompareOp   = VK_COMPARE_OP_LESS;
+        depthStencil.depthTestEnable       = VK_TRUE;
+        depthStencil.depthWriteEnable      = VK_TRUE;
+        depthStencil.depthCompareOp        = VK_COMPARE_OP_LESS;
         depthStencil.depthBoundsTestEnable = VK_FALSE;
         depthStencil.minDepthBounds        = 0.0f;    // Optional
         depthStencil.maxDepthBounds        = 1.0f;    // Optional
