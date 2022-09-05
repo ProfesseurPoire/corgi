@@ -86,6 +86,10 @@ int main()
     ubo->set_data(&matrix, sizeof(corgi::Matrix));
 
     material->ubo = ubo;
+    Sampler sampler;
+    sampler.binding      = 1;
+    sampler.texture_name = t->id();
+    material->samplers.push_back(sampler);
 
     // TODO : This kinda looks like the sampler lmao
 

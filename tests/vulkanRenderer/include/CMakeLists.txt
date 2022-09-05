@@ -4,7 +4,6 @@ target_sources(${PROJECT_NAME} PUBLIC
     VertexBuffer.h
     Material.h
     Framebuffer.h
-    UniformBufferObject.h
     PhysicalDevice.h
     RenderPass.h
     Pipeline.h

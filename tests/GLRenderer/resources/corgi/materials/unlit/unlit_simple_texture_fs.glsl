@@ -2,7 +2,8 @@
 
 in vec2 uv;
 
-uniform sampler2D	main_texture;
+layout(binding = 1) uniform sampler2D main_texture;
+
 uniform float alpha;
 
 out vec4 color;

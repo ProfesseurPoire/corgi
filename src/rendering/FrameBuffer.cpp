@@ -1,12 +1,12 @@
 #include <corgi/rendering/FrameBuffer.h>
-
 #include <corgi/rendering/RenderCommand.h>
+#include <corgi/rendering/Sampler.h>
 
 namespace corgi
 {
 FrameBuffer::FrameBuffer(const int width, const int height)
     : width_(width)
-      , height_(height)
+    , height_(height)
 {
     id_ = RenderCommand::generate_frame_buffer();
     init();
@@ -22,10 +22,10 @@ FrameBuffer::FrameBuffer(const FrameBuffer& framebuffer)
 
 FrameBuffer::FrameBuffer(FrameBuffer&& framebuffer) noexcept
     : width_(framebuffer.width_)
-      , height_(framebuffer.height_)
-      , id_(framebuffer.id_)
-      , color_attachment_(std::move(framebuffer.color_attachment_))
-      , depth_buffer_(std::move(framebuffer.depth_buffer_))
+    , height_(framebuffer.height_)
+    , id_(framebuffer.id_)
+    , color_attachment_(std::move(framebuffer.color_attachment_))
+    , depth_buffer_(std::move(framebuffer.depth_buffer_))
 {
     // Just to make sure the moved Framebuffer is in an empty state
     framebuffer.id_     = 0;
@@ -69,16 +69,12 @@ void FrameBuffer::init()
 
     // Sets the texture's color attachment
     color_attachment_ = std::make_unique<Texture>(
-        "color_attachment", width_, height_, Texture::MinFilter::Nearest,
-        Texture::MagFilter::Nearest, Texture::Wrap::Repeat, Texture::Wrap::Repeat,
-        Texture::Format::RGBA, Texture::InternalFormat::RGBA,
-        Texture::DataType::UnsignedByte);
+        "color_attachment", width_, height_, Texture::Format::RGBA,
+        Texture::InternalFormat::RGBA, Texture::DataType::UnsignedByte);
 
     depth_buffer_ = std::make_unique<Texture>(
-        "depth_stencil_attachment", width_, height_, Texture::MinFilter::Linear,
-        Texture::MagFilter::Linear, Texture::Wrap::Repeat, Texture::Wrap::Repeat,
-        Texture::Format::DEPTH_STENCIL, Texture::InternalFormat::DEPTH24_STENCIL8,
-        Texture::DataType::UnsignedInt24_8);
+        "depth_stencil_attachment", width_, height_, Texture::Format::DEPTH_STENCIL,
+        Texture::InternalFormat::DEPTH24_STENCIL8, Texture::DataType::UnsignedInt24_8);
 
     RenderCommand::bind_frame_buffer(id_);
     RenderCommand::set_color_attachement(color_attachment_->id());

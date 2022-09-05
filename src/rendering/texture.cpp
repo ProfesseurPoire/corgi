@@ -12,35 +12,35 @@
 
 using namespace corgi;
 
-static Texture::MagFilter parse_mag_filter(const std::string& str)
-{
-    static std::map<std::string, Texture::MagFilter> mag_filters = {
-        {"nearest", Texture::MagFilter::Nearest}, {"linear", Texture::MagFilter::Linear}};
-    return mag_filters.at(str);
-}
+// static Texture::MagFilter parse_mag_filter(const std::string& str)
+// {
+//     static std::map<std::string, Texture::MagFilter> mag_filters = {
+//         {"nearest", Texture::MagFilter::Nearest}, {"linear", Texture::MagFilter::Linear}};
+//     return mag_filters.at(str);
+// }
 
-static Texture::MinFilter parse_min_filter(const std::string& str)
-{
-    static std::map<std::string, Texture::MinFilter> min_filters_ = {
-        {"nearest", Texture::MinFilter::Nearest},
-        {"linear", Texture::MinFilter::Linear},
-        {"nearest_mipmap_nearest", Texture::MinFilter::NearestMipmapNearest},
-        {"nearest_mipmap_linear", Texture::MinFilter::NearestMipmapLinear},
-        {"linear_mipmap_linear", Texture::MinFilter::LinearMipmapLinear},
-        {"linear_mipmap_nearest", Texture::MinFilter::LinearMipmapNearest}};
-    return min_filters_.at(str);
-}
+// static Texture::MinFilter parse_min_filter(const std::string& str)
+// {
+//     static std::map<std::string, Texture::MinFilter> min_filters_ = {
+//         {"nearest", Texture::MinFilter::Nearest},
+//         {"linear", Texture::MinFilter::Linear},
+//         {"nearest_mipmap_nearest", Texture::MinFilter::NearestMipmapNearest},
+//         {"nearest_mipmap_linear", Texture::MinFilter::NearestMipmapLinear},
+//         {"linear_mipmap_linear", Texture::MinFilter::LinearMipmapLinear},
+//         {"linear_mipmap_nearest", Texture::MinFilter::LinearMipmapNearest}};
+//     return min_filters_.at(str);
+// }
 
-static Texture::Wrap load_wrap(const std::string& str)
-{
-    static std::map<std::string, Texture::Wrap> wraps = {
-        {"repeat", Texture::Wrap::Repeat},
-        {"clamp_to_border", Texture::Wrap::ClampToBorder},
-        {"clamp_to_edge", Texture::Wrap::ClampToEdge},
-        {"mirrored_repeat", Texture::Wrap::MirroredRepeat},
-        {"mirror_clamp_to_edge", Texture::Wrap::MirrorClampToEdge}};
-    return wraps.at(str);
-}
+// static Texture::Wrap load_wrap(const std::string& str)
+// {
+//     static std::map<std::string, Texture::Wrap> wraps = {
+//         {"repeat", Texture::Wrap::Repeat},
+//         {"clamp_to_border", Texture::Wrap::ClampToBorder},
+//         {"clamp_to_edge", Texture::Wrap::ClampToEdge},
+//         {"mirrored_repeat", Texture::Wrap::MirroredRepeat},
+//         {"mirror_clamp_to_edge", Texture::Wrap::MirrorClampToEdge}};
+//     return wraps.at(str);
+// }
 
 Texture::Texture()
 {
@@ -88,12 +88,13 @@ Texture::Texture(const std::string& path, const std::string& relative_path)
 
     corgi_image.read(reinterpret_cast<char*>(pixels), w * h * 4);
 
-    _width      = w;
-    _height     = h;
-    min_filter_ = parse_min_filter(document["min_filter"].GetString());
-    mag_filter_ = parse_mag_filter(document["mag_filter"].GetString());
-    wrap_s_     = load_wrap(document["wrap_s"].GetString());
-    wrap_t_     = load_wrap(document["wrap_t"].GetString());
+    _width  = w;
+    _height = h;
+
+    // min_filter_ = parse_min_filter(document["min_filter"].GetString());
+    // mag_filter_ = parse_mag_filter(document["mag_filter"].GetString());
+    // wrap_s_     = load_wrap(document["wrap_s"].GetString());
+    // wrap_t_     = load_wrap(document["wrap_t"].GetString());
 
     //log_info("Texture Constructor for "+path);
 
@@ -101,10 +102,10 @@ Texture::Texture(const std::string& path, const std::string& relative_path)
 
     RenderCommand::bind_texture_object(id_);
 
-    RenderCommand::texture_parameter(min_filter_);
-    RenderCommand::texture_parameter(mag_filter_);
-    RenderCommand::texture_wrap_s(wrap_s_);
-    RenderCommand::texture_wrap_t(wrap_t_);
+    // RenderCommand::texture_parameter(min_filter_);
+    // RenderCommand::texture_parameter(mag_filter_);
+    // RenderCommand::texture_wrap_s(wrap_s_);
+    // RenderCommand::texture_wrap_t(wrap_t_);
 
     // if (channels == 3)
     // {
@@ -129,22 +130,22 @@ Texture::Texture(const std::string& path, const std::string& relative_path)
 Texture::Texture(Texture&& texture) noexcept
     : name_(std::move(texture.name_))
     , id_(texture.id_)
-    , min_filter_(texture.min_filter_)
-    , mag_filter_(texture.mag_filter_)
-    , wrap_s_(texture.wrap_s_)
-    , wrap_t_(texture.wrap_t_)
+    // , min_filter_(texture.min_filter_)
+    // , mag_filter_(texture.mag_filter_)
+    // , wrap_s_(texture.wrap_s_)
+    // , wrap_t_(texture.wrap_t_)
     , _width(texture._width)
     , _height(texture._height)
 {
     //log_info("Texture Move Constructor for "+ name_);
 
-    texture.id_         = 0u;
-    texture._width      = static_cast<unsigned short>(0);
-    texture._height     = static_cast<unsigned short>(0);
-    texture.min_filter_ = MinFilter::Nearest;
-    texture.mag_filter_ = MagFilter::Nearest;
-    texture.wrap_s_     = Wrap::Repeat;
-    texture.wrap_t_     = Wrap::Repeat;
+    texture.id_     = 0u;
+    texture._width  = static_cast<unsigned short>(0);
+    texture._height = static_cast<unsigned short>(0);
+    // texture.min_filter_ = MinFilter::Nearest;
+    // texture.mag_filter_ = MagFilter::Nearest;
+    // texture.wrap_s_     = Wrap::Repeat;
+    // texture.wrap_t_     = Wrap::Repeat;
 }
 
 Texture& Texture::operator=(Texture&& texture) noexcept
@@ -154,22 +155,22 @@ Texture& Texture::operator=(Texture&& texture) noexcept
     if(id_ != 0)
         RenderCommand::delete_texture_object(id_);
 
-    name_       = std::move(texture.name_);
-    id_         = texture.id_;
-    min_filter_ = texture.min_filter_;
-    mag_filter_ = texture.mag_filter_;
-    wrap_s_     = texture.wrap_s_;
-    wrap_t_     = texture.wrap_t_;
-    _width      = texture._width;
-    _height     = texture._height;
+    name_ = std::move(texture.name_);
+    id_   = texture.id_;
+    // min_filter_ = texture.min_filter_;
+    // mag_filter_ = texture.mag_filter_;
+    // wrap_s_     = texture.wrap_s_;
+    // wrap_t_     = texture.wrap_t_;
+    _width  = texture._width;
+    _height = texture._height;
 
-    texture.id_         = 0u;
-    texture._width      = static_cast<unsigned short>(0);
-    texture._height     = static_cast<unsigned short>(0);
-    texture.min_filter_ = MinFilter::Nearest;
-    texture.mag_filter_ = MagFilter::Nearest;
-    texture.wrap_s_     = Wrap::Repeat;
-    texture.wrap_t_     = Wrap::Repeat;
+    texture.id_     = 0u;
+    texture._width  = static_cast<unsigned short>(0);
+    texture._height = static_cast<unsigned short>(0);
+    // texture.min_filter_ = MinFilter::Nearest;
+    // texture.mag_filter_ = MagFilter::Nearest;
+    // texture.wrap_s_     = Wrap::Repeat;
+    // texture.wrap_t_     = Wrap::Repeat;
 
     return *this;
 }
@@ -182,20 +183,16 @@ const char* Texture::name() const
 Texture::Texture(const std::string& name,
                  unsigned           width,
                  unsigned           height,
-                 MinFilter          min_f,
-                 MagFilter          mag_f,
-                 Wrap               wrap_s,
-                 Wrap               wrap_t,
-                 Format             format,
-                 InternalFormat     internal_format,
-                 DataType           dt,
-                 unsigned char*     data)
+                 //  MinFilter          min_f,
+                 //  MagFilter          mag_f,
+                 //  Wrap               wrap_s,
+                 //  Wrap               wrap_t,
+                 Format         format,
+                 InternalFormat internal_format,
+                 DataType       dt,
+                 unsigned char* data)
     : name_(name)
     , id_(RenderCommand::generate_texture_object())
-    , min_filter_(min_f)
-    , mag_filter_(mag_f)
-    , wrap_s_(wrap_s)
-    , wrap_t_(wrap_t)
     , _width(static_cast<unsigned short>(width))
     , _height(static_cast<unsigned short>(height))
 {
@@ -205,10 +202,6 @@ Texture::Texture(const std::string& name,
     RenderCommand::initialize_texture_object(format, internal_format, width, height, dt,
                                              data);
 
-    RenderCommand::texture_parameter(min_f);
-    RenderCommand::texture_parameter(mag_f);
-    RenderCommand::texture_wrap_s(wrap_s);
-    RenderCommand::texture_wrap_t(wrap_t);
     RenderCommand::end_texture();
 }
 
@@ -233,18 +226,6 @@ bool Texture::operator==(const Texture& other) const noexcept
     if(_height != other.height())
         return false;
 
-    if(min_filter_ != other.min_filter_)
-        return false;
-
-    if(mag_filter_ != other.mag_filter_)
-        return false;
-
-    if(wrap_s_ != other.wrap_s_)
-        return false;
-
-    if(wrap_t_ != other.wrap_t_)
-        return false;
-
     return true;
 }
 
@@ -263,18 +244,6 @@ bool Texture::operator<(const Texture& other) const noexcept
     if(_height != other._height)
         return _height < other._height;
 
-    if(min_filter_ != other.min_filter_)
-        return min_filter_ < other.min_filter_;
-
-    if(mag_filter_ != other.mag_filter_)
-        return mag_filter_ < other.mag_filter_;
-
-    if(wrap_s_ != other.wrap_s_)
-        return wrap_s_ < other.wrap_s_;
-
-    if(wrap_t_ != other.wrap_t_)
-        return wrap_t_ < other.wrap_t_;
-
     return true;
 }
 
@@ -289,36 +258,12 @@ void Texture::apply_changes()
         log_warning("Could not apply texture's changes");
 
     RenderCommand::bind_texture_object(id_);
-    RenderCommand::texture_parameter(min_filter_);
-    RenderCommand::texture_parameter(mag_filter_);
-    RenderCommand::texture_wrap_s(wrap_s_);
-    RenderCommand::texture_wrap_t(wrap_t_);
     RenderCommand::end_texture();
 }
 
 unsigned Texture::id() const noexcept
 {
     return id_;
-}
-
-Texture::MinFilter Texture::min_filter() const noexcept
-{
-    return min_filter_;
-}
-
-Texture::MagFilter Texture::mag_filter() const noexcept
-{
-    return mag_filter_;
-}
-
-Texture::Wrap Texture::wrap_s() const noexcept
-{
-    return wrap_s_;
-}
-
-Texture::Wrap Texture::wrap_t() const noexcept
-{
-    return wrap_t_;
 }
 
 unsigned Texture::width() const noexcept
@@ -447,26 +392,6 @@ void Texture::height(unsigned height) noexcept
 //    //img.load_from_png_file(path.c_str());
 //    //image(img);
 //}
-
-void Texture::min_filter(MinFilter filter) noexcept
-{
-    min_filter_ = filter;
-}
-
-void Texture::mag_filter(MagFilter filter) noexcept
-{
-    mag_filter_ = filter;
-}
-
-void Texture::wrap_s(Wrap wrap) noexcept
-{
-    wrap_s_ = wrap;
-}
-
-void Texture::wrap_t(Wrap wrap) noexcept
-{
-    wrap_t_ = wrap;
-}
 
 float Texture::ratio() const
 {

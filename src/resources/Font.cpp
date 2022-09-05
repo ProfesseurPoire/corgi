@@ -1,4 +1,5 @@
 #include <corgi/logger/log.h>
+#include <corgi/rendering/Sampler.h>
 #include <corgi/rendering/texture.h>
 #include <corgi/resources/Font.h>
 #include <freetype2/ft2build.h>
@@ -183,9 +184,8 @@ Font::Font(const std::string& file, const std::string& name)
                   conversion[configuration.rendering_mode]);
 
         configuration.texture.reset(new Texture(
-            n.c_str(), width, h, Texture::MinFilter::Nearest, Texture::MagFilter::Nearest,
-            Texture::Wrap::Repeat, Texture::Wrap::Repeat, Texture::Format::RGBA,
-            Texture::InternalFormat::RGBA, Texture::DataType::UnsignedByte, pixels));
+            n.c_str(), width, h, Texture::Format::RGBA, Texture::InternalFormat::RGBA,
+            Texture::DataType::UnsignedByte, pixels));
 
         font_file.peek();
     }

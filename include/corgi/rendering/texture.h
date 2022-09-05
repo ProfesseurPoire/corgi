@@ -21,31 +21,6 @@ public:
     friend class Renderer;
     friend class RenderCommand;
 
-    enum class MinFilter : char
-    {
-        Nearest              = 0,
-        Linear               = 1,
-        NearestMipmapNearest = 2,
-        NearestMipmapLinear  = 3,
-        LinearMipmapLinear   = 4,
-        LinearMipmapNearest  = 5
-    };
-
-    enum class MagFilter : char
-    {
-        Nearest = 0,
-        Linear  = 1
-    };
-
-    enum class Wrap : char
-    {
-        ClampToBorder     = 0,
-        ClampToEdge       = 1,
-        MirroredRepeat    = 2,
-        MirrorClampToEdge = 3,
-        Repeat            = 4
-    };
-
     enum class Format : char
     {
         RED,
@@ -113,10 +88,6 @@ public:
     Texture(const std::string& name,
             unsigned           width,
             unsigned           height,
-            MinFilter          min_filter,
-            MagFilter          mag_filter,
-            Wrap               wrap_s,
-            Wrap               wrap_t,
             Format             format,
             InternalFormat     internal_format,
             DataType           dt,
@@ -152,36 +123,6 @@ public:
 		 */
     [[nodiscard]] unsigned int id() const noexcept;
 
-    /*!
-		 * @brief	Returns the filter used when minifying pixels 
-		 * @return	Potential values are :
-		 *			* MinFilter::Nearest
-		 *			* MinFilter::Linear
-		 *			* MinFilter::NearestMipmapNearest
-		 *			* MinFilter::NearestMipmapLinear
-		 *			* MinFilter::LinearMipmapLinear
-		 *			* MinFilter::LinearMipmapNearest
-		 */
-    [[nodiscard]] MinFilter min_filter() const noexcept;
-
-    /*!
-		 * @brief	Returns the filter used when magnifying pixels
-		 * @return	Potential values are :
-		 *			* MagFilter::Linear 
-		 *			* MagFilter::Nearest
-		 */
-    [[nodiscard]] MagFilter mag_filter() const noexcept;
-
-    /*!
-     * @brief Returns the wrap value for the s coordinate
-     */
-    [[nodiscard]] Wrap wrap_s() const noexcept;
-
-    /*!
-		 * @brief Returns the wrap value for the t coordinate
-		 */
-    [[nodiscard]] Wrap wrap_t() const noexcept;
-
     [[nodiscard]] unsigned width() const noexcept;
     [[nodiscard]] unsigned height() const noexcept;
 
@@ -189,66 +130,9 @@ public:
     void height(unsigned height) noexcept;
 
     /*!
-     *	@brief Change the filter used for pixel minification
-     *	
-     *	Don't forget to call the @ref apply_changes() function
-     *	after you changed this filter.
-     * 
-     *  @param[in] filter : Potential values are 
-     *						* MinFilter::Nearest
-     *						* MinFilter::Linear
-     *						* MinFilter::NearestMipmapNearest
-     *						* MinFilter::NearestMipmapLinear
-     *						* MinFilter::LinearMipmapLinear
-     *						* MinFilter::LinearMipmapNearest
+     * @brief  Returns the aspect ratio of the texture
+     * The texture ration is width/height
      */
-    void min_filter(MinFilter filter) noexcept;
-
-    /*! 
-     *	@brief Changes the filter used for pixel magnification
-     * 
-     *  Don't forget to call the @ref apply_changes() function 
-     *	after you changed a filter
-     *  
-     *  @param[in] filter : Potential Values are
-     *						* MagFilter::Nearest 
-     *						* MagFilter::Linear
-     */
-    void mag_filter(MagFilter filter) noexcept;
-
-    /*! 
-     *	@brief Changes the way the s coordinate is wrapped
-     *  
-     *  @param[in] wrap :	Values are 
-     *  					* Wrap::ClampToBorder,
-     *  					* Wrap::ClampToEdge,
-     *  					* Wrap::MirroredRepeat,
-     *  					* Wrap::MirrorClampToEdge,
-     *  					* Wrap::Repeat
-     */
-    void wrap_s(Wrap wrap) noexcept;
-
-    /*! 
-		 *	@brief Changes the way the t coordinate is wrapped
-		 * 
-		 *  @param[in] wrap :	Values are 
-		 *						* Wrap::ClampToBorder,
-		 *						* Wrap::ClampToEdge,
-		 *						* Wrap::MirroredRepeat,
-		 *						* Wrap::MirrorClampToEdge,
-		 *						* Wrap::Repeat
-		 */
-    void wrap_t(Wrap wrap) noexcept;
-
-    /*!
-		 * @brief Used by the font to do stuff
-		 */
-    //void build_texture(int width, int height);
-
-    /*!
-		 * @brief  Returns the aspect ratio of the texture
-		 * The texture ration is width/height
-		 */
     [[nodiscard]] float ratio() const;
 
     [[nodiscard]] const char* name() const;
@@ -276,13 +160,6 @@ private:
     std::string name_;
 
     unsigned int id_ = 0u;    // 4 bytes
-
-    // Todo : I could probably put all of that in half the size but
-    // Padding would eat it anyways so
-    MinFilter min_filter_ = MinFilter::Nearest;    // 1 byte
-    MagFilter mag_filter_ = MagFilter::Nearest;    // 1 byte
-    Wrap      wrap_s_     = Wrap::Repeat;          // 1 byte
-    Wrap      wrap_t_     = Wrap::Repeat;          // 1 byte
 
     // Using unsigned because glTexImage2D uses GLSizei for width/height
 

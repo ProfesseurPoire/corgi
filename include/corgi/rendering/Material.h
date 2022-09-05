@@ -5,6 +5,7 @@
 #include <corgi/math/Vec2.h>
 #include <corgi/math/Vec3.h>
 #include <corgi/math/Vec4.h>
+#include <corgi/rendering/Sampler.h>
 #include <corgi/rendering/ShaderProgram.h>
 #include <corgi/rendering/UniformBufferObject.h>
 #include <corgi/resources/Resource.h>
@@ -65,6 +66,8 @@ enum class StencilOp : char
 class Material : public Resource
 {
 public:
+    std::vector<Sampler> samplers;
+
     enum class PolygonMode : char
     {
         Fill  = 0,

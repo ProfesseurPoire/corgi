@@ -924,31 +924,95 @@ void Renderer::begin_material(const Material& material)
 
     int texture_index = 0;
 
-    for(const auto& texture_uniform : material._texture_uniforms)
+    for(const auto& sampler : material.samplers)
     {
-        if(texture_uniform.texture == nullptr)
-            continue;
+        glActiveTexture(GL_TEXTURE0 + sampler.binding);    // Texture unit 0
 
-        glActiveTexture(GL_TEXTURE0 + texture_index);    // Texture unit 0
+        glBindTexture(GL_TEXTURE_2D, sampler.texture_name);
 
-        if(static_cast<int>(_opengl_state.binded_textures.size()) <= texture_index)
+        switch(sampler.wrap_s)
         {
-            _opengl_state.binded_textures.push_back(texture_uniform.texture->id());
-            glBindTexture(GL_TEXTURE_2D, texture_uniform.texture->id());
-        }
-        else
-        {
-            if(_opengl_state.binded_textures[texture_index] !=
-               texture_uniform.texture->id())
-            {
-                _opengl_state.binded_textures[texture_index] =
-                    texture_uniform.texture->id();
-                glBindTexture(GL_TEXTURE_2D, texture_uniform.texture->id());
-            }
+            case Sampler::Wrap::ClampToBorder:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+                break;
+
+            case Sampler::Wrap::ClampToEdge:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                break;
+
+            case Sampler::Wrap::MirroredRepeat:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+                break;
+
+            case Sampler::Wrap::MirrorClampToEdge:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                                GL_MIRROR_CLAMP_TO_EDGE);
+                break;
+
+            case Sampler::Wrap::Repeat:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                break;
         }
 
-        glUniform1i(texture_uniform.location, texture_index);
-        texture_index++;
+        switch(sampler.wrap_t)
+        {
+            case Sampler::Wrap::ClampToBorder:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+                break;
+
+            case Sampler::Wrap::ClampToEdge:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                break;
+
+            case Sampler::Wrap::MirroredRepeat:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+                break;
+
+            case Sampler::Wrap::MirrorClampToEdge:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                                GL_MIRROR_CLAMP_TO_EDGE);
+                break;
+
+            case Sampler::Wrap::Repeat:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                break;
+        }
+
+        switch(sampler.min_filter)
+        {
+            case Sampler::MinFilter::Nearest:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                break;
+            case Sampler::MinFilter::Linear:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                break;
+            case Sampler::MinFilter::NearestMipmapNearest:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                                GL_NEAREST_MIPMAP_NEAREST);
+                break;
+            case Sampler::MinFilter::NearestMipmapLinear:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                                GL_NEAREST_MIPMAP_LINEAR);
+                break;
+            case Sampler::MinFilter::LinearMipmapLinear:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                                GL_LINEAR_MIPMAP_LINEAR);
+                break;
+            case Sampler::MinFilter::LinearMipmapNearest:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                                GL_LINEAR_MIPMAP_NEAREST);
+                break;
+        }
+
+        switch(sampler.mag_filter)
+        {
+            case Sampler::MagFilter::Nearest:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                break;
+            case Sampler::MagFilter::Linear:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                break;
+        }
     }
 
     model_matrix_id = material.location_model_view_projection_matrix;
