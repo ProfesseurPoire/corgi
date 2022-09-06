@@ -13,6 +13,7 @@ public:
     VulkanUniformBufferObject(VkDevice         device,
                               VkPhysicalDevice physical_device,
                               ShaderStage      shader_stage);
+
     ~VulkanUniformBufferObject();
 
     void set_data(void* data, int size) override;

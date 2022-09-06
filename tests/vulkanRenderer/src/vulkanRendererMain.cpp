@@ -13,6 +13,7 @@
 #include <Swapchain.h>
 #include <corgi/rendering/VulkanRenderer.h>
 #include <corgi/rendering/vulkan/VulkanConstants.h>
+#include <corgi/rendering/vulkan/VulkanMaterial.h>
 #include <corgi/rendering/vulkan/VulkanUniformBufferObject.h>
 #include <corgi/resources/image.h>
 #include <vulkan/vulkan.h>

@@ -74,6 +74,7 @@ void VulkanUniformBufferObject::create_descriptor_sets(VkDevice device)
 
     for(size_t i = 0; i < VulkanConstants::max_in_flight; i++)
     {
+        // Ok so this assume that I only have 1 uniform block
         VkDescriptorBufferInfo bufferInfo {};
         bufferInfo.buffer = uniformBuffers[i];
         bufferInfo.offset = 0;

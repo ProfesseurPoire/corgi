@@ -195,6 +195,8 @@ private:
     void draw_line(const DrawList::Line& line);
     void draw_dlsprite(const DrawList::DrawListSprite& sprite);
 
+    void bind_sampler(const Sampler& sampler);
+
     /*!
 		 * @brief	Handle the drawing of everything on the screenSpace
 		 *			usually that means everything UI related, or calls to 
