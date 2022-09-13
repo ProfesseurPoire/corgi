@@ -31,10 +31,10 @@ void VulkanRenderer::create_command_buffers()
     }
 }
 
-Pipeline& VulkanRenderer::create_pipeline(const corgi::VulkanUniformBufferObject& ubo)
+VulkanPipeline& VulkanRenderer::create_pipeline(const corgi::VulkanMaterial& ubo)
 {
     return *pipelines_
-                .emplace_back(std::make_unique<Pipeline>(
+                .emplace_back(std::make_unique<VulkanPipeline>(
                     device_, render_pass_.render_pass, swapchain_, ubo))
                 .get();
 }
@@ -122,9 +122,9 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer,
                                          uint32_t        imageIndex,
                                          int             currentFrame,
                                          Mesh            mesh,
-                                         Pipeline&       pipeline)
+                                         corgi::VulkanMaterial* material)
 {
-    mesh.ubo->update(currentFrame);
+    material->update(currentFrame);
 
     VkBuffer     vertexBuffers[] = {mesh.vb.buffer};
     VkDeviceSize offsets[]       = {0};
@@ -132,9 +132,9 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer,
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(commandBuffer, mesh.ib.indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
-    vkCmdBindDescriptorSets(
-        commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.pipeline_layout, 0, 1,
-        &dynamic_cast<corgi::VulkanUniformBufferObject*>(mesh.ubo)->descriptorSets[0], 0,
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            material->pipeline_layout, 0, 1,
+        &material->descriptorSets[0], 0,
         nullptr);
 
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.ib.size), 1, 0, 0, 0);
@@ -146,7 +146,7 @@ VertexBuffer VulkanRenderer::create_vertex_buffer(std::span<Vertex> vertices)
                                               vertices);
 }
 
-void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline*>>& meshes)
+void VulkanRenderer::draw(const std::vector<std::pair<Mesh, corgi::VulkanMaterial*>>& meshes)
 {
     // Before drawing, we need to wait for the fence to be available
     // Vulkan is designed with multithreading in mind, fences are like mutex
@@ -216,8 +216,11 @@ void VulkanRenderer::draw(const std::vector<std::pair<Mesh, Pipeline*>>& meshes)
         scissor.extent = swapchain_.create_info.imageExtent;
         vkCmdSetScissor(command_buffers_[currentFrame], 0, 1, &scissor);
 
-        recordCommandBuffer(command_buffers_[currentFrame], imageIndex, currentFrame,
-                            pair.first, *pair.second);
+        recordCommandBuffer(command_buffers_[currentFrame],
+            imageIndex, 
+            currentFrame,
+            pair.first,
+            pair.second);
     }
     vkCmdEndRenderPass(command_buffers_[currentFrame]);
 

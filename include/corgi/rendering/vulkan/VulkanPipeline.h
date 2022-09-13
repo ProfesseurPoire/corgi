@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Swapchain.h"
-#include "VertexBuffer.h"
+#include <corgi/rendering/vulkan/VulkanSwapchain.h>
+#include <corgi/rendering/vulkan/VulkanVertexBuffer.h>
 
-#include <corgi/rendering/vulkan/VulkanUniformBufferObject.h>
+#include <corgi/rendering/vulkan/VulkanMaterial.h>
 #include <vulkan/vulkan.hpp>
 
 #include <fstream>
@@ -13,7 +13,7 @@
  * @brief Describe the different steps of the graphic pipeline
  * 
  */
-class Pipeline
+class VulkanPipeline
 {
 public:
     VkDevice device_;
@@ -56,12 +56,12 @@ public:
     VkPipelineLayout pipeline_layout;
     VkPipeline       pipeline;
 
-    ~Pipeline() { vkDestroyPipeline(device_, pipeline, nullptr); }
+    ~VulkanPipeline() { vkDestroyPipeline(device_, pipeline, nullptr); }
 
-    Pipeline(VkDevice                                device,
+    VulkanPipeline(VkDevice                     device,
              VkRenderPass                            render_pass,
              const Swapchain&                        swapchain,
-             const corgi::VulkanUniformBufferObject& uniform_buffer_object)
+             const corgi::VulkanMaterial&           material)
         : device_(device)
     {
 
@@ -97,7 +97,7 @@ public:
         VkPipelineLayoutCreateInfo pipelineLayoutInfo {};
         pipelineLayoutInfo.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts    = &uniform_buffer_object.descriptorSetLayout;
+        pipelineLayoutInfo.pSetLayouts    = &material.descriptorSetLayout;
 
         if(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr,
                                   &pipeline_layout) != VK_SUCCESS)

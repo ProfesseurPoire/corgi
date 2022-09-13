@@ -17,94 +17,125 @@ public:
     VkPipelineLayout      pipelineLayout;
 
     VkDescriptorSetLayoutBinding bindingLayout;
-    ImageView imgview;
+    ImageView                    imgview;
 
-    void init(VkDevice device, ImageView image_view)
+    void init(VkDevice device, VkPhysicalDevice physical_device, ImageView image_view)
     {
-        // Notice that I might need to specify the shader
-        // Tells on which binding this sampler is
-        const VkDescriptorSetLayoutBinding samplerLayoutBinding 
-        {
-            .binding            = static_cast<uint32_t>(binding),
-            .descriptorType     = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount    = 1,
-            .stageFlags         = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .pImmutableSamplers = nullptr
-            };
+        imgview = image_view;
 
-        // All of the above is clearly material stuff and not "Sampler" or Uniform stuff
+        VkSamplerCreateInfo samplerInfo {};
+        samplerInfo.sType     = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
 
-        // This is probably something that will have to be moved to material
-        // later on but one step at a time
-        VkDescriptorSetLayoutCreateInfo layoutInfo {};
-        layoutInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = 1;
-        layoutInfo.pBindings    = &samplerLayoutBinding;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
-        if(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr,
-                                       &descriptorSetLayout) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create descriptor set layout!");
-        }
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        //samplerInfo.maxAnisotropy    = ? ? ? ;
 
-        // Create Descriptor Pool
-        // Here it's already kinda material related
-        // since we should make a juge poolSize to hold every uniform
+        VkPhysicalDeviceProperties properties {};
+        vkGetPhysicalDeviceProperties(physical_device, &properties);
 
-        VkDescriptorPoolSize poolSizes {};
-        poolSizes.type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        poolSizes.descriptorCount = static_cast<uint32_t>(VulkanConstants::max_in_flight);
+        samplerInfo.maxAnisotropy           = properties.limits.maxSamplerAnisotropy;
+        samplerInfo.borderColor             = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerInfo.compareEnable           = VK_FALSE;
+        samplerInfo.compareOp               = VK_COMPARE_OP_ALWAYS;
 
-        VkDescriptorPoolCreateInfo poolInfo {};
-        poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = static_cast<uint32_t>(1);
-        poolInfo.pPoolSizes    = &poolSizes;
-        poolInfo.maxSets       = static_cast<uint32_t>(VulkanConstants::max_in_flight);
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod     = 0.0f;
+        samplerInfo.maxLod     = 0.0f;
 
-        // create descriptor sets
+        if(vkCreateSampler(device, &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
+            throw std::runtime_error("failed to create texture sampler!");
 
-        // So we make a DescriptorSetLayout for each potential frame in flight
-        std::vector<VkDescriptorSetLayout> layouts(VulkanConstants::max_in_flight,
-                                                   descriptorSetLayout);
+        //// Notice that I might need to specify the shader
+        //// Tells on which binding this sampler is
+        //const VkDescriptorSetLayoutBinding samplerLayoutBinding
+        //{
+        //    .binding            = static_cast<uint32_t>(binding),
+        //    .descriptorType     = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        //    .descriptorCount    = 1,
+        //    .stageFlags         = VK_SHADER_STAGE_FRAGMENT_BIT,
+        //    .pImmutableSamplers = nullptr
+        //    };
 
-        VkDescriptorSetAllocateInfo allocInfo {};
-        allocInfo.sType          = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = descriptorPool;
-        allocInfo.descriptorSetCount =
-            static_cast<uint32_t>(VulkanConstants::max_in_flight);
-        allocInfo.pSetLayouts = layouts.data();
+        //// All of the above is clearly material stuff and not "Sampler" or Uniform stuff
 
-        std::vector<VkDescriptorSet> descriptorSets;
-        descriptorSets.resize(VulkanConstants::max_in_flight);
+        //// This is probably something that will have to be moved to material
+        //// later on but one step at a time
+        //VkDescriptorSetLayoutCreateInfo layoutInfo {};
+        //layoutInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        //layoutInfo.bindingCount = 1;
+        //layoutInfo.pBindings    = &samplerLayoutBinding;
 
-        if(vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) !=
-           VK_SUCCESS)
-            throw std::runtime_error("failed to allocate descriptor sets!");
+        //if(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr,
+        //                               &descriptorSetLayout) != VK_SUCCESS)
+        //{
+        //    throw std::runtime_error("failed to create descriptor set layout!");
+        //}
 
-        // So this part here is to actually write in the descriptor set
-        // This is where we bind our ImageView to the Binding
-        for(size_t i = 0; i < VulkanConstants::max_in_flight; i++)
-        {
-            VkDescriptorImageInfo imageInfo {};
-            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView   = image_view.textureImageView;
-            imageInfo.sampler     = sampler;
+        //// Create Descriptor Pool
+        //// Here it's already kinda material related
+        //// since we should make a juge poolSize to hold every uniform
 
-            VkWriteDescriptorSet descriptorWrites {};
+        //VkDescriptorPoolSize poolSizes {};
+        //poolSizes.type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        //poolSizes.descriptorCount = static_cast<uint32_t>(VulkanConstants::max_in_flight);
 
-            descriptorWrites.sType  = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites.dstSet = descriptorSets[i];
-            // I find it a bit weird that we have to tell which binding twice?
-            descriptorWrites.dstBinding = 0;
+        //VkDescriptorPoolCreateInfo poolInfo {};
+        //poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        //poolInfo.poolSizeCount = static_cast<uint32_t>(1);
+        //poolInfo.pPoolSizes    = &poolSizes;
+        //poolInfo.maxSets       = static_cast<uint32_t>(VulkanConstants::max_in_flight);
 
-            descriptorWrites.dstArrayElement = 0;
-            descriptorWrites.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorWrites.descriptorCount = 1;
-            descriptorWrites.pImageInfo      = &imageInfo;
+        //// create descriptor sets
 
-            vkUpdateDescriptorSets(device, static_cast<uint32_t>(1), &descriptorWrites, 0,
-                                   nullptr);
-        }
+        //// So we make a DescriptorSetLayout for each potential frame in flight
+        //std::vector<VkDescriptorSetLayout> layouts(VulkanConstants::max_in_flight,
+        //                                           descriptorSetLayout);
+
+        //VkDescriptorSetAllocateInfo allocInfo {};
+        //allocInfo.sType          = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        //allocInfo.descriptorPool = descriptorPool;
+        //allocInfo.descriptorSetCount =
+        //    static_cast<uint32_t>(VulkanConstants::max_in_flight);
+        //allocInfo.pSetLayouts = layouts.data();
+
+        //std::vector<VkDescriptorSet> descriptorSets;
+        //descriptorSets.resize(VulkanConstants::max_in_flight);
+
+        //if(vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) !=
+        //   VK_SUCCESS)
+        //    throw std::runtime_error("failed to allocate descriptor sets!");
+
+        //// So this part here is to actually write in the descriptor set
+        //// This is where we bind our ImageView to the Binding
+        //for(size_t i = 0; i < VulkanConstants::max_in_flight; i++)
+        //{
+        //    VkDescriptorImageInfo imageInfo {};
+        //    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        //    imageInfo.imageView   = image_view.textureImageView;
+        //    imageInfo.sampler     = sampler;
+
+        //    VkWriteDescriptorSet descriptorWrites {};
+
+        //    descriptorWrites.sType  = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        //    descriptorWrites.dstSet = descriptorSets[i];
+        //    // I find it a bit weird that we have to tell which binding twice?
+        //    descriptorWrites.dstBinding = 0;
+
+        //    descriptorWrites.dstArrayElement = 0;
+        //    descriptorWrites.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        //    descriptorWrites.descriptorCount = 1;
+        //    descriptorWrites.pImageInfo      = &imageInfo;
+
+        //    vkUpdateDescriptorSets(device, static_cast<uint32_t>(1), &descriptorWrites, 0,
+        //                           nullptr);
+        //}
     }
 
 private:

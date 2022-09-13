@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Framebuffer.h>
+#include <corgi/rendering/vulkan/VulkanFramebuffer.h>
 #include <vulkan/vulkan.hpp>
 
 #include <optional>

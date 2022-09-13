@@ -34,7 +34,7 @@ public:
     virtual void draw(const Mesh& mesh, const Material& material) = 0;
 
     virtual UniformBufferObject*
-    create_ubo(UniformBufferObject::ShaderStage shader_stage) = 0;
+    create_ubo(void* data, int size, UniformBufferObject::ShaderStage shader_stage) = 0;
 
     virtual ~AbstractRenderer() {};
 

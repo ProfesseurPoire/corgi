@@ -678,10 +678,13 @@ static void set_stencil_enum(GLenum& e, StencilOp v)
     }
 }
 
-UniformBufferObject* Renderer::create_ubo(UniformBufferObject::ShaderStage shader_stage)
+UniformBufferObject*
+Renderer::create_ubo(void* data, int size, UniformBufferObject::ShaderStage shader_stage)
 {
     auto ubo = new GLUniformBufferObject(shader_stage);
     ubos_.emplace_back(ubo);
+
+    ubo->set_data(data, size);
 
     //glUniformBlockBinding(shader_program_id, 0, 0);
 

@@ -111,8 +111,8 @@ public:
      */
     void draw(const Mesh& mesh, const Material& material) override;
 
-    UniformBufferObject*
-    create_ubo(UniformBufferObject::ShaderStage shader_stage) override;
+    UniformBufferObject* create_ubo(
+        void* data, int size, UniformBufferObject::ShaderStage shader_stage) override;
 
     void draw_scene(Window& window, Scene& scene);
 

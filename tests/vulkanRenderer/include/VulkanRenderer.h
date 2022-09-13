@@ -2,13 +2,14 @@
 
 #include "IndexBuffer.h"
 #include "PhysicalDevice.h"
-#include "Pipeline.h"
-#include "RenderPass.h"
-#include "Swapchain.h"
-#include "VertexBuffer.h"
+#include <corgi/rendering/vulkan/VulkanPipeline.h>
+#include <corgi/rendering/vulkan/RenderPass.h>
+#include <corgi/rendering/vulkan/VulkanSwapchain.h>
+#include <corgi/rendering/vulkan/VulkanVertexBuffer.h>
 
 #include <corgi/rendering/vulkan/VulkanConstants.h>
-#include <corgi/rendering/vulkan/VulkanUniformBufferObject.h>
+#include <corgi/rendering/vulkan/VulkanMaterial.h>
+
 #include <vulkan/vulkan_core.h>
 
 #include <optional>
@@ -21,7 +22,7 @@ struct Mesh
 {
     IndexBuffer                 ib;
     VertexBuffer                vb;
-    corgi::UniformBufferObject* ubo;
+    corgi::VulkanMaterial* material;
 };
 
 class VulkanRenderer
@@ -43,7 +44,7 @@ public:
     std::vector<VkSemaphore> render_finished_semaphores_;
     std::vector<VkFence>     in_flight_fences_;
 
-    std::vector<std::unique_ptr<Pipeline>> pipelines_;
+    std::vector<std::unique_ptr<VulkanPipeline>> pipelines_;
 
     /**
      * \brief Helper function to create a buffer that stores indexes
@@ -59,7 +60,7 @@ public:
      *
      *          All pipeline are stored inside the vulkan renderer
      */
-    Pipeline& create_pipeline(const corgi::VulkanUniformBufferObject& ubo);
+    VulkanPipeline& create_pipeline(const corgi::VulkanMaterial& ubo);
 
     /**
      * \brief   Loads an image file into a Vulkan Image
@@ -72,15 +73,15 @@ public:
     void create_command_pool();
     void create_sync_objects();
 
-    void draw(const std::vector<std::pair<Mesh, Pipeline*>>& meshes);
+    void draw(const std::vector<std::pair<Mesh, corgi::VulkanMaterial*>>& meshes);
 
-    void recordCommandBuffer(VkCommandBuffer commandBuffer,
-                             uint32_t        imageIndex,
-                             int             current_frame,
-                             Mesh            mesh,
-                             Pipeline&       pipeline);
+    void recordCommandBuffer(VkCommandBuffer        commandBuffer,
+                             uint32_t               imageIndex,
+                             int                    current_frame,
+                             Mesh                   mesh,
+                             corgi::VulkanMaterial* material);
 
-    std::vector<corgi::VulkanUniformBufferObject> uniform_buffer_objects_;
+   // std::vector<corgi::VulkanUniformBufferObject> uniform_buffer_objects_;
 
     VkQueue graphicsQueue;
     VkQueue presentQueue;

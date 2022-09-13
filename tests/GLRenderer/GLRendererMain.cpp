@@ -78,12 +78,11 @@ int main()
     auto mesh = Mesh::new_standard_2D_mesh(std::move(vertices), std::move(indexes));
     mesh->build_bounding_volumes();
 
-    auto ubo = renderer.create_ubo(UniformBufferObject::ShaderStage::Vertex);
-
     auto matrix = camera->projection_matrix() * Matrix::translation(0.0f, 0.0f, -10.0f) *
                   corgi::Matrix::euler_angles(0.0f, 0.0f, 0.0f);
 
-    ubo->set_data(&matrix, sizeof(corgi::Matrix));
+    auto ubo = renderer.create_ubo(&matrix, sizeof(corgi::Matrix),
+                                   UniformBufferObject::ShaderStage::Vertex);
 
     material->ubo = ubo;
     Sampler sampler;

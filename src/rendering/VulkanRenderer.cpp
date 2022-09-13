@@ -1,5 +1,5 @@
 #include <corgi/rendering/VulkanRenderer.h>
-#include <corgi/rendering/vulkan/VulkanUniformBufferObject.h>
+#include <corgi/rendering/vulkan/VulkanMaterial.h>
 
 using namespace corgi;
 
@@ -11,10 +11,3 @@ Texture VulkanRenderer::create_texture()
 }
 
 void VulkanRenderer::delete_texture(Texture texture) {}
-
-UniformBufferObject*
-VulkanRenderer::create_ubo(UniformBufferObject::ShaderStage shader_stage)
-{
-    //
-    return new VulkanUniformBufferObject(device_, physical_device_, shader_stage);
-}

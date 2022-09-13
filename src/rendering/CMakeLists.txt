@@ -1,8 +1,5 @@
 target_sources(${PROJECT_NAME} PRIVATE
 	gl/GLUniformBufferObject.cpp
-	vulkan/VulkanUniformBufferObject.cpp
-	vulkan/ImageView.cpp
-	vulkan/Image.cpp
 	AbstractRenderer.cpp
 	Color.cpp
 	DrawList.cpp
@@ -17,3 +14,5 @@ target_sources(${PROJECT_NAME} PRIVATE
 	texture.cpp
 	VulkanRenderer.cpp
 	WindowDrawList.cpp)
+
+	add_subdirectory(vulkan)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Swapchain.h"
+#include <corgi/rendering/vulkan/VulkanSwapchain.h>
 
 #include <corgi/rendering/vulkan/Image.h>
 #include <corgi/rendering/vulkan/ImageView.h>

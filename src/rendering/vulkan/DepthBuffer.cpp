@@ -1,4 +1,4 @@
-#include "DepthBuffer.h"
+#include <corgi/rendering/vulkan/DepthBuffer.h>
 
 
 void DepthBuffer::initialize(Swapchain        swapchain,

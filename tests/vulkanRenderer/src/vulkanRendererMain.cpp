@@ -1,16 +1,16 @@
 #define VK_USE_PLATFORM_WIN32_KHR
-#include "DepthBuffer.h"
-#include "Framebuffer.h"
+#include <corgi/rendering/vulkan/DepthBuffer.h>
+#include <corgi/rendering/vulkan/VulkanFramebuffer.h>
 #include "IndexBuffer.h"
 #include "PhysicalDevice.h"
-#include "Pipeline.h"
-#include "VertexBuffer.h"
+#include <corgi/rendering/vulkan/VulkanPipeline.h>
+#include <corgi/rendering/vulkan/VulkanVertexBuffer.h>
 #include "VulkanRenderer.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
 #include <SDL2/SDL_vulkan.h>
-#include <Swapchain.h>
+#include <corgi/rendering/vulkan/VulkanSwapchain.h>
 #include <corgi/rendering/VulkanRenderer.h>
 #include <corgi/rendering/vulkan/VulkanConstants.h>
 #include <corgi/rendering/vulkan/VulkanMaterial.h>
@@ -89,8 +89,8 @@ struct TestUniform
 TestUniform uniform;
 TestUniform uniform2;
 
-corgi::UniformBufferObject* ubo1;
-corgi::UniformBufferObject* ubo2;
+corgi::VulkanMaterial* material1;
+corgi::VulkanMaterial* material2;
 
 Image image1;
 Image image2;
@@ -107,48 +107,74 @@ void create_vulkan_instance()
 {
     vulkan_renderer = new VulkanRenderer(window);
 
+    vr.physical_device_ = vulkan_renderer->physical_device_.vulkan_device();
+    vr.device_          = vulkan_renderer->device_;
+
     image1 = vulkan_renderer->create_image("corgi.img");
     image2 = vulkan_renderer->create_image("enemy.img");
+
+    auto ubo_test1 = vr.create_ubo(&uniform, sizeof(uniform),
+                                   corgi::UniformBufferObject::ShaderStage::Vertex);
+
+    auto ubo_test2 = vr.create_ubo(&uniform2, sizeof(uniform),
+                                   corgi::UniformBufferObject::ShaderStage::Vertex);
 
     image_view_1 = ImageView::create_texture_image_view(image1, vulkan_renderer->device_);
     image_view_2 = ImageView::create_texture_image_view(image2, vulkan_renderer->device_);
 
+    corgi::VulkanSampler sampler1;
+    sampler1.binding = 1;
+    sampler1.init(vulkan_renderer->device_,
+                  vulkan_renderer->physical_device_.vulkan_device(), image_view_1);
+
+    corgi::VulkanSampler sampler2;
+    sampler2.binding = 1;
+    sampler2.init(vulkan_renderer->device_,
+                  vulkan_renderer->physical_device_.vulkan_device(), image_view_2);
+
+    corgi::VulkanSampler sampler3;
+    sampler3.binding = 2;
+    sampler3.init(vulkan_renderer->device_,
+                  vulkan_renderer->physical_device_.vulkan_device(), image_view_2);
+
+    corgi::VulkanSampler sampler4;
+    sampler4.binding = 2;
+    sampler4.init(vulkan_renderer->device_,
+                  vulkan_renderer->physical_device_.vulkan_device(), image_view_1);
+
     sampler_1 = ImageView::createTextureSampler(
         vulkan_renderer->device_, vulkan_renderer->physical_device_.vulkan_device());
+
     sampler_2 = ImageView::createTextureSampler(
         vulkan_renderer->device_, vulkan_renderer->physical_device_.vulkan_device());
 
-    vr.physical_device_ = vulkan_renderer->physical_device_.vulkan_device();
-    vr.device_          = vulkan_renderer->device_;
+    material1 = vr.create_material(corgi::UniformBufferObject::ShaderStage::Vertex);
+    material2 = vr.create_material(corgi::UniformBufferObject::ShaderStage::Vertex);
 
-    ubo1 = vr.create_ubo(corgi::UniformBufferObject::ShaderStage::Vertex);
-    ubo2 = vr.create_ubo(corgi::UniformBufferObject::ShaderStage::Vertex);
+    material1->samplers.push_back(sampler1);
+    material1->samplers.push_back(sampler3);
 
-    dynamic_cast<corgi::VulkanUniformBufferObject*>(ubo1)->image_view = image_view_1;
-    dynamic_cast<corgi::VulkanUniformBufferObject*>(ubo1)->sampler    = sampler_1;
+    material2->samplers.push_back(sampler2);
+    material2->samplers.push_back(sampler4);
 
-    dynamic_cast<corgi::VulkanUniformBufferObject*>(ubo2)->image_view = image_view_2;
-    dynamic_cast<corgi::VulkanUniformBufferObject*>(ubo2)->sampler    = sampler_2;
+    material1->ubos.push_back(ubo_test1);
+    material2->ubos.push_back(ubo_test2);
 
-    ubo1->set_data(&uniform, sizeof(uniform));
-    ubo2->set_data(&uniform2, sizeof(uniform));
+    material1->render_pass =vulkan_renderer->render_pass_;
+    material1->swapchain = vulkan_renderer->swapchain_;
 
-    // ubo1 =
-    //     vr.create_ubo(&uniform, sizeof(uniform), UniformBufferObject::ShaderStage::Vertex,
-    //                   0, image_view_1, sampler_1);
+    material2->render_pass = vulkan_renderer->render_pass_;
+    material2->swapchain   = vulkan_renderer->swapchain_;
 
-    // ubo2 = vr.create_ubo(&uniform2, sizeof(uniform),
-    //                      UniformBufferObject::ShaderStage::Vertex, 0, image_view_2,
-    //                      sampler_2);
+    material1->init();
+    material2->init();
 }
 
 Mesh mesh;
 Mesh mesh2;
 
-Pipeline* pipeline;
-Pipeline* pipeline2;
 
-std::vector<std::pair<Mesh, Pipeline*>> meshes;
+std::vector<std::pair<Mesh, corgi::VulkanMaterial*>> meshes;
 
 void init_vulkan()
 {
@@ -160,20 +186,16 @@ void init_vulkan()
     create_vulkan_instance();
 
     // Probably the part handling the mesh creation. I should probably move it elsewhere
-    mesh.vb  = vulkan_renderer->create_vertex_buffer(vertices);
-    mesh.ib  = vulkan_renderer->create_index_buffer(indexes);
-    mesh.ubo = ubo1;
-    pipeline = &vulkan_renderer->create_pipeline(
-        *dynamic_cast<corgi::VulkanUniformBufferObject*>(mesh.ubo));
+    mesh.vb       = vulkan_renderer->create_vertex_buffer(vertices);
+    mesh.ib       = vulkan_renderer->create_index_buffer(indexes);
+    
 
-    mesh2.vb  = vulkan_renderer->create_vertex_buffer(vertices);
-    mesh2.ib  = vulkan_renderer->create_index_buffer(indexes);
-    mesh2.ubo = ubo2;
-    pipeline2 = &vulkan_renderer->create_pipeline(
-        *dynamic_cast<corgi::VulkanUniformBufferObject*>(mesh2.ubo));
+    mesh2.vb       = vulkan_renderer->create_vertex_buffer(vertices);
+    mesh2.ib       = vulkan_renderer->create_index_buffer(indexes);
+   
 
-    meshes.push_back({mesh, pipeline});
-    meshes.push_back({mesh2, pipeline2});
+    meshes.push_back({mesh, material1});
+    meshes.push_back({mesh2, material2});
 }
 
 void main_loop()

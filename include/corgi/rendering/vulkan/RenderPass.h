@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DepthBuffer.h"
+#include <corgi/rendering/vulkan/DepthBuffer.h>
 
 #include <vulkan/vulkan.hpp>
 

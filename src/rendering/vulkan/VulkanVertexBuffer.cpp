@@ -1,4 +1,4 @@
-#include "VertexBuffer.h"
+#include <corgi/rendering/vulkan/VulkanVertexBuffer.h>
 
 VertexBuffer VertexBuffer::create_vertex_buffer(VkPhysicalDevice  physicalDevice,
                                       VkDevice          device,

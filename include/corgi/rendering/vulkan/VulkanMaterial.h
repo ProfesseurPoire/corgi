@@ -1,137 +1,90 @@
 #pragma once
 
+#include <corgi/math/Matrix.h>
+#include <corgi/rendering/AbstractMaterial.h>
+#include <corgi/rendering/UniformBufferObject.h>
+//include<corgi / rendering />
+#include <corgi/rendering/vulkan/ImageView.h>
 #include <corgi/rendering/vulkan/VulkanSampler.h>
 #include <corgi/rendering/vulkan/VulkanUniformBufferObject.h>
+#include <corgi/rendering/vulkan/VulkanSwapchain.h>
+#include <corgi/rendering/vulkan/RenderPass.h>
 
-#include <array>
-#include <vector>
+#include <vulkan/vulkan.hpp>
 
 namespace corgi
 {
-class VulkanMaterial
+    class VulkanPipeline;
+
+class VulkanMaterial : public AbstractMaterial
 {
 public:
-    std::vector<VulkanUniformBufferObject> uniform_buffer_objects;
-    std::vector<VulkanSampler>             samplers;
+    VulkanMaterial(VkDevice device, VkPhysicalDevice physical_device);
 
-    // Not exactly sure what's that
+    // The sampler list
+    std::vector<corgi::VulkanSampler>        samplers;
+    std::vector<corgi::UniformBufferObject*> ubos;
+    
+    ~VulkanMaterial();
+
+    Swapchain swapchain;
+    RenderPass render_pass;
+
+    void set_data(void* data, int size);
+
+    int   binding_ = 0;
+    void* data_;
+    int   size_;
+
+    //void use() override;
+    void update(int current_image = 0);
+
+    VkDevice         device_;
+    VkPhysicalDevice physical_device_;
+
+    void add_uniform(VkDevice                         device,
+                     VkPhysicalDevice                 physical_device,
+                     void*                            data,
+                     int                              size,
+                     UniformBufferObject::ShaderStage shader_stage,
+                     int                              layout);
+
+    // The descriptor thing
+    VkDescriptorPool      descriptorPool;
+    VkDescriptorSetLayout descriptorSetLayout;
+
+    // The descriptors sets
     std::vector<VkDescriptorSet> descriptorSets;
-    VkDescriptorPool             descriptorPool;
-    VkDescriptorSetLayout        descriptorSetLayout;
 
-    // So once the uniform buffers and the sampler have been initialized
-    // we init the material
-    // For now, we won't be able to update the material after it has been
-    // initialized
-    void init(VkDevice device)
-    {
+    // The buffers
+    VkBuffer       indexBuffer;
+    VkDeviceMemory indexBufferMemory;
 
-        std::vector<VkBuffer> uniformBuffers;
+    /**
+     * \brief Actually init the material after the samplers and uniforms have been set
+     */
+    void init();
 
-        // So we make as many as many descriptor pool size
-        // as there are ubo and samplers
-        std::vector<VkDescriptorPoolSize> poolSizes {uniform_buffer_objects.size() +
-                                                     samplers.size()};
+    VkPipelineLayout            pipeline_layout;
+    VkPipeline                  pipeline;
+    std::vector<VkBuffer>       uniformBuffers;
+    std::vector<VkDeviceMemory> uniformBuffersMemory;
 
-        int i = 0;
-        for(int j = 0; j < uniform_buffer_objects.size(); j++)
-        {
-            poolSizes[i].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            poolSizes[i].descriptorCount =
-                static_cast<uint32_t>(VulkanConstants::max_in_flight);
+    void create_uniform_buffers(VkDevice device, VkPhysicalDevice physical_device);
 
-            i++;
-        }
+    void create_descriptor_pool(VkDevice device);
+    void create_descriptor_sets(VkDevice device);
 
-        for(int j = 0; j < samplers.size(); j++)
-        {
-            poolSizes[i].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            poolSizes[i].descriptorCount =
-                static_cast<uint32_t>(VulkanConstants::max_in_flight);
-            i++;
-        }
+    void createDescriptorSetLayout(VkDevice                         device);
 
-        VkDescriptorPoolCreateInfo poolInfo {};
-        poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-        poolInfo.pPoolSizes    = poolSizes.data();
-        poolInfo.maxSets       = static_cast<uint32_t>(VulkanConstants::max_in_flight);
+    void destroy_uniform_buffers(VkDevice device);
+    void destroy_descriptor_set_layout(VkDevice device);
 
-        if(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) !=
-           VK_SUCCESS)
-            throw std::runtime_error("failed to create descriptor pool!");
 
-        // Create DescriptorSets
 
-        std::vector<VkDescriptorSetLayout> layouts(VulkanConstants::max_in_flight,
-                                                   descriptorSetLayout);
-
-        VkDescriptorSetAllocateInfo allocInfo {};
-        allocInfo.sType          = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = descriptorPool;
-        allocInfo.descriptorSetCount =
-            static_cast<uint32_t>(VulkanConstants::max_in_flight);
-        allocInfo.pSetLayouts = layouts.data();
-
-        descriptorSets.resize(VulkanConstants::max_in_flight);
-
-        if(vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) !=
-           VK_SUCCESS)
-            throw std::runtime_error("failed to allocate descriptor sets!");
-
-        for(size_t i = 0; i < VulkanConstants::max_in_flight; i++)
-        {
-            // I can preshot the size but well see that later on
-            std::vector<VkWriteDescriptorSet> descriptorWrites {};
-
-            int c = 0;
-
-            for(const auto& uniform : uniform_buffer_objects)
-            {
-                VkDescriptorBufferInfo bufferInfo {};
-                bufferInfo.buffer = uniform.uniformBuffers[i];
-                bufferInfo.offset = 0;
-                // So this is weird
-                bufferInfo.range = sizeof(UniformBufferObject);
-
-                VkWriteDescriptorSet descriptorWrite;
-
-                descriptorWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                descriptorWrite.dstSet          = descriptorSets[i];
-                descriptorWrite.dstBinding      = 0;
-                descriptorWrite.dstArrayElement = 0;
-                descriptorWrite.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                descriptorWrite.descriptorCount = 1;
-                descriptorWrite.pBufferInfo     = &bufferInfo;
-
-                c++;
-            }
-
-            for(const auto& sampler : samplers)
-            {
-                VkDescriptorImageInfo imageInfo {};
-                imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-                imageInfo.imageView = sampler.imgview.textureImageView;
-                imageInfo.sampler   = sampler;
-
-                VkWriteDescriptorSet descriptorWrite;
-                descriptorWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                descriptorWrite.dstSet          = descriptorSets[i];
-                descriptorWrite.dstBinding      = static_cast<uint32_t>(c);
-                descriptorWrite.dstArrayElement = 0;
-                descriptorWrite.descriptorType =
-                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                descriptorWrite.descriptorCount = 1;
-                descriptorWrite.pImageInfo      = &imageInfo;
-                c++;
-            }
-
-            vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
-                                   descriptorWrites.data(), 0, nullptr);
-        }
-    }
 
 private:
+
+    void init_pipeline();
 };
 }    // namespace corgi

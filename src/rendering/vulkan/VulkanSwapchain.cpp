@@ -1,4 +1,4 @@
-#include "Swapchain.h"
+#include <corgi/rendering/vulkan/VulkanSwapchain.h>
 
 #include <SDL2/SDL_vulkan.h>
 
