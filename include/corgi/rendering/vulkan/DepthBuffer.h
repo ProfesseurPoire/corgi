@@ -12,7 +12,7 @@ struct DepthBuffer
     void
     initialize(Swapchain swapchain, VkDevice device, VkPhysicalDevice physical_device);
 
-    Image       depth_image;
+    Vulkan::Image       depth_image;
     VkImageView depthImageView;
 
     /**

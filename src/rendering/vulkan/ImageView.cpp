@@ -60,7 +60,7 @@ VkSampler ImageView::createTextureSampler(VkDevice         device,
     return sampler;
 }
 
-ImageView ImageView::create_texture_image_view(Image image, VkDevice device)
+ImageView ImageView::create_texture_image_view(Vulkan::Image image, VkDevice device)
 {
     ImageView image_view;
     image_view.textureImageView = createImageView(

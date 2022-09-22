@@ -338,22 +338,9 @@ AudioPlayer& Game::audio_player() noexcept
     return audio_player_;
 }
 
-Window& Game::add_window(const std::string& name,
-                         int                x,
-                         int                y,
-                         int                width,
-                         int                height,
-                         int                fullscreen,
-                         bool               vsync,
-                         bool               borderless)
+Window& Game::add_window(corgi::Window::CreateInfo info)
 {
-    auto& window = windows_.emplace_back(std::make_unique<Window>());
-
-    window->initialize(name.c_str(), x, y, width, height, fullscreen, vsync);
-    window->setBorderless(borderless);
-    window->show();
-
-    return *window.get();
+    return *windows_.emplace_back(std::make_unique<Window>(info)).get();
 }
 
 GameScene& Game::scene()

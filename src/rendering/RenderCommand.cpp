@@ -297,14 +297,14 @@ void RenderCommand::end_texture()
     glDisable(GL_TEXTURE_2D);
 }
 
-unsigned RenderCommand::create_shader(Shader::Type type)
+unsigned RenderCommand::create_shader(GLShader::Type type)
 {
     switch(type)
     {
-        case Shader::Type::Vertex:
+        case GLShader::Type::Vertex:
             return glCreateShader(GL_VERTEX_SHADER);
             break;
-        case Shader::Type::Fragment:
+        case GLShader::Type::Fragment:
             return glCreateShader(GL_FRAGMENT_SHADER);
             break;
     }

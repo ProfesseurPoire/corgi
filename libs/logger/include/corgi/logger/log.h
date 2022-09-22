@@ -1,71 +1,100 @@
 #pragma once
 
-#include <string>
 #include <sstream>
+#include <string>
 
 // Use the macros to get the File::Func::Line info, and to be able to remove
 // the debugging code depending on the CORGI_VERBOSITY preprocessor macro
 //
-// To change the log_level value, update this in the CMakeLists.txt: 
+// To change the log_level value, update this in the CMakeLists.txt:
 // target_compile_definitions(<project> PUBLIC CORGI_VERBOSITY=3)
 
 namespace corgi::logger
 {
-    enum class LogLevel
-    {
-        Info, Trace, Debug, Warning, Error, FatalError        
-    };
+enum class LogLevel
+{
+    Info,
+    Trace,
+    Debug,
+    Warning,
+    Error,
+    FatalError
+};
 }
 
 #if CORGI_VERBOSITY <= 0
-#define log_info(text)              logger::log(text, corgi::logger::LogLevel::Info, __LINE__, __FILE__, __func__ , "default")
-#define log_info_on(text, channel)  logger::log(text, corgi::logger::LogLevel::Info, __LINE__, __FILE__, __func__ , channel)
+#    define log_info(text)                                                             \
+        logger::log(text, corgi::logger::LogLevel::Info, __LINE__, __FILE__, __func__, \
+                    "default")
+#    define log_info_on(text, channel)                                                 \
+        logger::log(text, corgi::logger::LogLevel::Info, __LINE__, __FILE__, __func__, \
+                    channel)
 #else
-#define log_info(text) 
-#define log_info_on(test, channel)
+#    define log_info(text)
+#    define log_info_on(test, channel)
 #endif
 
 #if CORGI_VERBOSITY <= 1
-#define log_trace(text)             logger::log(text, corgi::logger::LogLevel::Trace, __LINE__, __FILE__, __func__ , "default")
-#define log_trace_on(text, channel) logger::log(text, corgi::logger::LogLevel::Trace, __LINE__, __FILE__, __func__ , channel)
+#    define log_trace(text)                                                             \
+        logger::log(text, corgi::logger::LogLevel::Trace, __LINE__, __FILE__, __func__, \
+                    "default")
+#    define log_trace_on(text, channel)                                                 \
+        logger::log(text, corgi::logger::LogLevel::Trace, __LINE__, __FILE__, __func__, \
+                    channel)
 #else
-#define log_trace(text) 
-#define log_trace_on(test, channel)
+#    define log_trace(text)
+#    define log_trace_on(test, channel)
 #endif
 
 #if CORGI_VERBOSITY <= 2
-#define log_debug(text)             logger::log(text, corgi::logger::LogLevel::Debug, __LINE__, __FILE__, __func__ , "default")
-#define log_debug_on(text, channel) logger::log(text, corgi::logger::LogLevel::Debug, __LINE__, __FILE__, __func__ , channel)
+#    define log_debug(text)                                                             \
+        logger::log(text, corgi::logger::LogLevel::Debug, __LINE__, __FILE__, __func__, \
+                    "default")
+#    define log_debug_on(text, channel)                                                 \
+        logger::log(text, corgi::logger::LogLevel::Debug, __LINE__, __FILE__, __func__, \
+                    channel)
 #else
-#define log_debug(text) 
-#define log_debug_on(test, channel)
+#    define log_debug(text)
+#    define log_debug_on(test, channel)
 #endif
 
 #if CORGI_VERBOSITY <= 3
-#define log_warning(text)             logger::log(text, corgi::logger::LogLevel::Warning, __LINE__, __FILE__, __func__ , "default")
-#define log_warning_on(text, channel) logger::log(text, corgi::logger::LogLevel::Warning, __LINE__, __FILE__, __func__ , channel)
+#    define log_warning(text)                                                   \
+        logger::log(text, corgi::logger::LogLevel::Warning, __LINE__, __FILE__, \
+                    __func__, "default")
+#    define log_warning_on(text, channel)                                       \
+        logger::log(text, corgi::logger::LogLevel::Warning, __LINE__, __FILE__, \
+                    __func__, channel)
 #else
-#define log_warning(text) 
-#define log_warning_on(test, channel)
+#    define log_warning(text)
+#    define log_warning_on(test, channel)
 #endif
 
 #if CORGI_VERBOSITY <= 4
-#define log_error(text)             logger::log(text, corgi::logger::LogLevel::Error, __LINE__, __FILE__, __func__ , "default")
-#define log_error_on(text, channel) logger::log(text, corgi::logger::LogLevel::Error, __LINE__, __FILE__, __func__ , channel)
+#    define log_error(text)                                                             \
+        logger::log(text, corgi::logger::LogLevel::Error, __LINE__, __FILE__, __func__, \
+                    "default")
+#    define log_error_on(text, channel)                                                 \
+        logger::log(text, corgi::logger::LogLevel::Error, __LINE__, __FILE__, __func__, \
+                    channel)
 #else
-#define log_error(text) 
-#define log_error_on(test, channel)
+#    define log_error(text)
+#    define log_error_on(test, channel)
 #endif
 
 #if CORGI_VERBOSITY <= 5
-#define log_fatal_error(text)             logger::log(text, corgi::logger::LogLevel::FatalError, __LINE__, __FILE__, __func__ , "default")
-#define log_fatal_error_on(text, channel) logger::log(text, corgi::logger::LogLevel::FatalError, __LINE__, __FILE__, __func__ , channel)
+#    define log_fatal_error(text)                                                  \
+        logger::log(text, corgi::logger::LogLevel::FatalError, __LINE__, __FILE__, \
+                    __func__, "default")
+#    define log_fatal_error_on(text, channel)                                      \
+        logger::log(text, corgi::logger::LogLevel::FatalError, __LINE__, __FILE__, \
+                    __func__, channel)
 #else
-#define log_fatal_error(text) 
-#define log_fatal_error_on(test, channel)
+#    define log_fatal_error(text)
+#    define log_fatal_error_on(test, channel)
 #endif
 
-namespace corgi 
+namespace corgi
 {
 /*!
  * @brief  Provides functions to log information about the application
@@ -117,33 +146,30 @@ namespace corgi
 namespace logger
 {
 
-	///*!
-	// * @brief   Logger class won't change much, but it will allow the user
-	// *          to control the lifetime of the log machine
-	// */
-	//class Logger
-	//{
-	//public:
+///*!
+// * @brief   Logger class won't change much, but it will allow the user
+// *          to control the lifetime of the log machine
+// */
 
-	//private:
-	//};
-
-	
-    // Adds a concept here that prevent the user from using an object that doesn't
-    // define the << operator (since we're gonna need it in our log function)
-    #ifdef __clang__
-    #else
-    template<typename T>
-        concept HasStreamOperator = requires(T x, std::ostream os)
-        {
-            os << x;
-        };
-    #endif
-
+// Adds a concept here that prevent the user from using an object that doesn't
+// define the << operator (since we're gonna need it in our log function)
+#ifdef __clang__
+#else
+template<typename T>
+concept HasStreamOperator = requires(T x, std::ostream os)
+{
+    os << x;
+};
+#endif
 
 namespace details
 {
-    void write_log(const std::string& obj, LogLevel log_level, const std::string& channel, const std::string& file, const std::string& func, int line);
+void write_log(const std::string& obj,
+               LogLevel           log_level,
+               const std::string& channel,
+               const std::string& file,
+               const std::string& func,
+               int                line);
 }
 
 // TODO :   Could also have a "Output" Class, one for ConsoleOutput, one for FileOutput
@@ -187,16 +213,20 @@ void set_folder(const std::string& path);
  * @param[in] func      The function that called the function
  * @param[in] channel   The channel on which the message will be displayed
  */
-#ifdef __clang__ 
+#ifdef __clang__
 template<class T>
 #else
 template<HasStreamOperator T>
 #endif
-void log(   const T& obj, const LogLevel log_level, int line, const std::string& file,
-            const std::string& func,  const std::string& channel)
+void log(const T&           obj,
+         const LogLevel     log_level,
+         int                line,
+         const std::string& file,
+         const std::string& func,
+         const std::string& channel)
 {
     std::stringstream ss;
-    ss << obj ;
+    ss << obj;
 
     logger::details::write_log(ss.str(), log_level, channel, file, func, line);
 
@@ -206,5 +236,5 @@ void log(   const T& obj, const LogLevel log_level, int line, const std::string&
         abort();
     }
 }
-}
-}
+}    // namespace logger
+}    // namespace corgi

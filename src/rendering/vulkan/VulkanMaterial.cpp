@@ -1,12 +1,13 @@
 
 #include <corgi/rendering/vulkan/VulkanConstants.h>
 #include <corgi/rendering/vulkan/VulkanMaterial.h>
-#include <corgi/rendering/vulkan/VulkanPipeline.h>
+#include <corgi/rendering/vulkan/VulkanShader.h>
+#include <corgi/rendering/vulkan/VulkanVertexBuffer.h>
+#include <corgi/rendering/vulkan/VulkanTexture.h>
 
 using namespace corgi;
 
-VulkanMaterial::VulkanMaterial(VkDevice         device,
-                             VkPhysicalDevice physical_device)
+VulkanMaterial::VulkanMaterial(VkDevice device, VkPhysicalDevice physical_device)
     : AbstractMaterial()
 {
     device_          = device;
@@ -15,10 +16,7 @@ VulkanMaterial::VulkanMaterial(VkDevice         device,
 
 VulkanMaterial::~VulkanMaterial() {}
 
- void VulkanMaterial::set_data(void* data, int size)
- {
-    
- }
+void VulkanMaterial::set_data(void* data, int size) {}
 
 // void VulkanMaterial::use() {}
 
@@ -30,7 +28,7 @@ void VulkanMaterial::destroy_descriptor_set_layout(VkDevice device)
 void VulkanMaterial::create_descriptor_pool(VkDevice device)
 {
     std::vector<VkDescriptorPoolSize> poolSizes {ubos.size() + samplers.size()};
-    
+
     int j = 0;
 
     for(auto ubo : ubos)
@@ -74,11 +72,11 @@ void VulkanMaterial::create_descriptor_sets(VkDevice device)
     if(vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS)
         throw std::runtime_error("failed to allocate descriptor sets!");
 
-
     for(size_t i = 0; i < VulkanConstants::max_in_flight; i++)
     {
         int                               j = 0;
-        std::vector<VkWriteDescriptorSet> descriptorWrites {ubos.size()+ samplers.size()};
+        std::vector<VkWriteDescriptorSet> descriptorWrites {ubos.size() +
+                                                            samplers.size()};
 
         std::vector<VkDescriptorBufferInfo> bufferInfo(ubos.size());
 
@@ -86,8 +84,8 @@ void VulkanMaterial::create_descriptor_sets(VkDevice device)
         for(const auto& ubo : ubos)
         {
             // Ok so this assume that I only have 1 uniform block
-            bufferInfo[loc].buffer = dynamic_cast<corgi::VulkanUniformBufferObject*>(ubo)
-                                         ->uniformBuffers[i];
+            bufferInfo[loc].buffer =
+                dynamic_cast<corgi::VulkanUniformBufferObject*>(ubo)->uniformBuffers[i];
             bufferInfo[loc].offset = 0;
             bufferInfo[loc].range  = sizeof(UniformBufferObject);
 
@@ -108,13 +106,16 @@ void VulkanMaterial::create_descriptor_sets(VkDevice device)
 
         for(const auto& sampler : samplers)
         {
-            imageInfo[loc].imageLayout     = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo[loc].imageView       = sampler.imgview.textureImageView;
-            imageInfo[loc].sampler         = sampler.sampler;
+            imageInfo[loc].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-            descriptorWrites[j].sType      = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[j].dstSet     = descriptorSets[i];
-            descriptorWrites[j].dstBinding = j;
+            auto vs = static_cast<VulkanTexture*>(sampler->texture);
+
+            imageInfo[loc].imageView    = vs->image_view;
+            imageInfo[loc].sampler      = sampler->sampler;
+
+            descriptorWrites[j].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[j].dstSet          = descriptorSets[i];
+            descriptorWrites[j].dstBinding      = j;
             descriptorWrites[j].dstArrayElement = 0;
             descriptorWrites[j].descriptorType =
                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -128,10 +129,9 @@ void VulkanMaterial::create_descriptor_sets(VkDevice device)
     }
 }
 
-void VulkanMaterial::createDescriptorSetLayout(VkDevice    device)
+void VulkanMaterial::createDescriptorSetLayout(VkDevice device)
 {
     std::vector<VkDescriptorSetLayoutBinding> bindings;
-
 
     for(auto ubo : ubos)
     {
@@ -160,8 +160,9 @@ void VulkanMaterial::createDescriptorSetLayout(VkDevice    device)
     for(auto sampler : samplers)
     {
         // Temporary for now
+        // TODO CHANGE THAT TOO
         const VkDescriptorSetLayoutBinding samplerLayoutBinding {
-            .binding            = static_cast<uint32_t>(sampler.binding),
+            .binding            = static_cast<uint32_t>(sampler->binding),
             .descriptorType     = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount    = 1,
             .stageFlags         = VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -202,8 +203,7 @@ static std::vector<char> read_file(const std::string& filename)
     return buffer;
 }
 
-static  VkShaderModule create_shader_module(VkDevice                 device,
-                                                  const std::vector<char>& code)
+static VkShaderModule create_shader_module(VkDevice device, const std::vector<char>& code)
 {
     VkShaderModuleCreateInfo createInfo {};
     createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -218,24 +218,37 @@ static  VkShaderModule create_shader_module(VkDevice                 device,
     return shaderModule;
 }
 
+VulkanMaterial::VulkanMaterial(VkDevice                     device,
+                               VkPhysicalDevice             physical_device,
+                               AbstractMaterial::Descriptor descriptor)
+    : AbstractMaterial()
+{
+    device_          = device;
+    physical_device_ = physical_device;
+
+    vertex_shader_   = descriptor.vertex_shader;
+    fragment_shader_ = descriptor.fragment_shader;
+    for(auto sampler : descriptor.samplers)
+    {
+        samplers.push_back(static_cast<VulkanSampler*>(sampler));
+    }
+}
+
 void VulkanMaterial::init_pipeline()
 {
-    auto vertShaderCode = read_file("shaders/vert.spv");
-    auto fragShaderCode = read_file("shaders/frag.spv");
-
-    VkShaderModule vertShaderModule = create_shader_module(device_, vertShaderCode);
-    VkShaderModule fragShaderModule = create_shader_module(device_, fragShaderCode);
+    auto* vs = static_cast<VulkanShader*>(vertex_shader_);
+    auto* fs = static_cast<VulkanShader*>(fragment_shader_);
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo {};
     vertShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     vertShaderStageInfo.stage  = VK_SHADER_STAGE_VERTEX_BIT;
-    vertShaderStageInfo.module = vertShaderModule;
+    vertShaderStageInfo.module = vs->shader_module_;
     vertShaderStageInfo.pName  = "main";
 
     VkPipelineShaderStageCreateInfo fragShaderStageInfo {};
     fragShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     fragShaderStageInfo.stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
-    fragShaderStageInfo.module = fragShaderModule;
+    fragShaderStageInfo.module = fs->shader_module_;
     fragShaderStageInfo.pName  = "main";
 
     VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo,
@@ -375,13 +388,7 @@ void VulkanMaterial::init_pipeline()
     {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
-
-    vkDestroyShaderModule(device_, fragShaderModule, nullptr);
-    vkDestroyShaderModule(device_, vertShaderModule, nullptr);
-
-
 }
-
 
 void VulkanMaterial::init()
 {
@@ -391,10 +398,13 @@ void VulkanMaterial::init()
     init_pipeline();
 }
 
-void VulkanMaterial::update(int current_image)
+void VulkanMaterial::update()
 {
-   for(auto ubo : ubos)
-   {
-       ubo->update(current_image);
-   }
+    for(auto ubo : ubos)
+    {
+        // I need to update the material for every buffer copy for each
+        // image
+        for(int i = 0; i < VulkanConstants::max_in_flight; i++)
+            ubo->update(i);
+    }
 }

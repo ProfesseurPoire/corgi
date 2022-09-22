@@ -16,5 +16,5 @@ struct ImageView
     static VkSampler createTextureSampler(VkDevice         device,
                                                VkPhysicalDevice physical_device);
 
-    static ImageView create_texture_image_view(Image image, VkDevice device);
+    static ImageView create_texture_image_view(Vulkan::Image image, VkDevice device);
 };

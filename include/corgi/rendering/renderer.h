@@ -10,6 +10,7 @@
 #include <corgi/rendering/DrawList.h>
 #include <corgi/rendering/Profiler.h>
 #include <corgi/rendering/WindowDrawList.h>
+#include <corgi/rendering/gl/GLSampler.h>
 #include <corgi/utils/Color.h>
 #include <corgi/utils/TimeHelper.h>
 
@@ -95,6 +96,16 @@ public:
     void initialize_opengl_state();
     void clear();
 
+    AbstractTexture* create_texture(AbstractTexture::CreateInfo info) override 
+    {
+        return new Texture(info);
+    }
+
+    Material* create_material(Material::Descriptor descriptor) override
+    {
+        return new Material(descriptor);
+    }
+
     Texture create_texture() override { return Texture(); }
     void    delete_texture(Texture tex) override {}
 
@@ -113,6 +124,18 @@ public:
 
     UniformBufferObject* create_ubo(
         void* data, int size, UniformBufferObject::ShaderStage shader_stage) override;
+
+    UniformBufferObject* create_ubo(UniformBufferObject::CreateInfo create_info) override;
+
+    Shader* create_shader(Shader::Stage stage, const std::string& file) override
+    {
+        return new GLShader(stage, file);
+    }
+
+    Sampler* create_sampler(Sampler::CreateInfo info) override
+    {
+        return new GLSampler(info);
+    }
 
     void draw_scene(Window& window, Scene& scene);
 
@@ -141,11 +164,6 @@ public:
     void set_uniform(unsigned id, const std::string& name, const Matrix& m);
 
     /*!
-         * @brief Sets the window the renderer is drawing into
-         */
-    void set_current_window(Window* window);
-
-    /*!
 		 * @brief	Actually send the model matrix with the mesh's vertex to the GPU
 		 */
     void draw_mesh(const Mesh* mesh, const Matrix& matrix);
@@ -162,19 +180,17 @@ public:
 
     [[nodiscard]] ProfilerInfo profiler() const noexcept;
 
-    Window* window = nullptr;
-
     // TODO : probably implement that on the game side?
     bool show_colliders_ = true;
 
     void initialize_camera(const Matrix& inverse, const Camera& camera);
+    void setClearColor(Color c);
+
+    void set_viewport(const Viewport& v);
+    void set_viewport(int x, int y, int width, int height);
 
 private:
     // Functions
-
-    void setClearColor(Color c);
-    void set_viewport(const Viewport& v);
-    void set_viewport(int x, int y, int width, int height);
 
     /*
 		 * @brief	Draw a bunch of RendererComponent objects that share the same material
@@ -212,6 +228,8 @@ private:
 
     // Use this when you need to draw temporary primitives.
     // Objects will be drawn relative to the screen coordinates/size
+
+    // TODO : This should get the fuck out of here, we should only use it if we actually want to use it
     WindowDrawList window_draw_list_;
 
     // Use this when you need to draw temporary stuff in the world
@@ -224,7 +242,6 @@ private:
 
     ComponentPool<Transform>* transform_map_ = nullptr;
 
-    Scene*  _current_scene {nullptr};
-    Window* current_window_ {nullptr};
+    Scene* _current_scene {nullptr};
 };
 }    // namespace corgi

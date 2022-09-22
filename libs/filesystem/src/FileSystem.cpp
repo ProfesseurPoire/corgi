@@ -14,6 +14,42 @@ long long size(const std::string& path)
     return file.tellg();
 }
 
+std::vector<char> read_file_binary(const std::string& filepath)
+{
+    std::ifstream file(filepath, std::ios::ate | std::ios::binary);
+
+    if(!file.is_open())
+        throw std::runtime_error("Failure to open file " + filepath);
+
+    // We read once to know the size of the file
+    const auto fileSize = file.tellg();
+
+    std::vector<char> content(fileSize);
+    file.seekg(0);
+    file.read(content.data(), fileSize);
+    return content;
+}
+
+// TODO : I probably should benchmark and try to see other ways to optimize this
+std::string read_file(const std::string& filepath)
+{
+    std::ifstream file(filepath);
+    std::string   content;
+
+    if(!file.is_open())
+        throw std::invalid_argument("Could not load shader at : \"" + filepath + "\"");
+
+    // We first check how many characters there are to avoid unnecessary
+    // allocations
+    file.seekg(0, std::ios::end);
+    content.reserve(std::string::size_type(file.tellg()));
+    file.seekg(0, std::ios::beg);
+
+    content.assign(std::istreambuf_iterator<char>(file),
+                   std::istreambuf_iterator<char>());
+    return content;
+}
+
 Vector<FileInfo> list_directory(const std::string& directory, bool recursive)
 {
     Vector<FileInfo> files;

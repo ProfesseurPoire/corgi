@@ -4,6 +4,6 @@ target_sources(${PROJECT_NAME} PRIVATE
 	FontView.cpp
 	image.cpp
 	Mesh.cpp
-	Shader.cpp
+	GLShader.cpp
 	Sound.cpp
 	Tilemap.cpp)

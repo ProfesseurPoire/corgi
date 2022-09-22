@@ -1,13 +1,16 @@
 #include <corgi/rendering/vulkan/Image.h>
 #include <corgi/resources/image.h>
 
+namespace Vulkan
+{
+
+
 Image Image::create_texture_image(VkDevice           device,
                                   VkPhysicalDevice   physical_device,
                                   VkCommandPool      commandPool,
                                   VkQueue            graphicsQueue,
                                   const std::string& filepath)
 {
-
     corgi::Image img = corgi::Image(("resources/" + filepath).c_str());
 
     int  texWidth    = img.width();
@@ -49,4 +52,6 @@ Image Image::create_texture_image(VkDevice           device,
                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     return image;
+
+}
 }

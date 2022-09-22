@@ -1,7 +1,7 @@
 #include <corgi/filesystem/FileSystem.h>
 #include <corgi/rendering/Material.h>
 #include <corgi/rendering/RenderCommand.h>
-#include <corgi/resources/Shader.h>
+#include <corgi/resources/GLShader.h>
 #include <corgi/utils/ResourcesCache.h>
 #include <glad/glad.h>
 #include <rapidjson/document.h>
@@ -12,6 +12,22 @@
 
 namespace corgi
 {
+
+Material::Material(Material::Descriptor descriptor)
+{
+    shader_program = std::make_shared<ShaderProgram>(
+        "name", static_cast<GLShader*>(descriptor.vertex_shader),
+        static_cast<GLShader*>(descriptor.fragment_shader), glCreateProgram());
+
+    glAttachShader(shader_program->id_, shader_program->_vertex_shader->id());
+    glAttachShader(shader_program->id_, shader_program->_fragment_shader->id());
+
+    glLinkProgram(shader_program->id_);
+
+    samplers.insert(samplers.begin(), descriptor.samplers.begin(),
+                    descriptor.samplers.end());
+}
+
 void Material::set_uniform(const std::string& name, int value)
 {
     for(auto& v : _uniforms)
@@ -24,6 +40,11 @@ void Material::set_uniform(const std::string& name, int value)
     }
     _uniforms.emplace_back(name, glGetUniformLocation(shader_program->id(), name.c_str()),
                            value);
+}
+
+void Material::update()
+{
+    ubo->update();
 }
 
 void Material::set_uniform(const std::string& name, Matrix value)
@@ -440,9 +461,9 @@ Material::Material(const std::string& name)
 {
 }
 
-static std::shared_ptr<ShaderProgram> generate_program(const char*   name,
-                                                       const Shader* vertex_shader,
-                                                       const Shader* fragment_shader)
+static std::shared_ptr<ShaderProgram> generate_program(const char*     name,
+                                                       const GLShader* vertex_shader,
+                                                       const GLShader* fragment_shader)
 {
     auto* program =
         new ShaderProgram(name, vertex_shader, fragment_shader, glCreateProgram());
@@ -642,8 +663,8 @@ Material::Material(const std::string& path, const std::string& relative_name)
     std::string vertex_shader_path   = document["vertex_shader"].GetString();
     std::string fragment_shader_path = document["fragment_shader"].GetString();
 
-    auto vertex_shader   = ResourcesCache::get<Shader>(vertex_shader_path);
-    auto fragment_shader = ResourcesCache::get<Shader>(fragment_shader_path);
+    auto vertex_shader   = ResourcesCache::get<GLShader>(vertex_shader_path);
+    auto fragment_shader = ResourcesCache::get<GLShader>(fragment_shader_path);
 
     auto program = generate_program(filesystem::filename(path.c_str()).c_str(),
                                     vertex_shader, fragment_shader);

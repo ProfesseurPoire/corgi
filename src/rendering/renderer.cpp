@@ -215,12 +215,6 @@ depth_sorting(Transform& ta, Transform& tb, const Component* a, const Component*
     return false;
 }
 
-void Renderer::set_current_window(Window* window)
-{
-    current_window_ = window;
-    window_draw_list_.set_current_window(window);
-}
-
 void Renderer::draw_collider(ColliderComponent* collider, const Matrix& world_matrix)
 {
     static Material material =
@@ -678,6 +672,11 @@ static void set_stencil_enum(GLenum& e, StencilOp v)
     }
 }
 
+UniformBufferObject* Renderer::create_ubo(UniformBufferObject::CreateInfo info)
+{
+    return ubos_.emplace_back(std::make_unique<GLUniformBufferObject>(info)).get();
+}
+
 UniformBufferObject*
 Renderer::create_ubo(void* data, int size, UniformBufferObject::ShaderStage shader_stage)
 {
@@ -768,7 +767,7 @@ void Renderer::bind_sampler(const Sampler& sampler)
 {
     glActiveTexture(GL_TEXTURE0 + sampler.binding);    // Texture unit 0
 
-    glBindTexture(GL_TEXTURE_2D, sampler.texture_name);
+    glBindTexture(GL_TEXTURE_2D, static_cast<Texture*>( sampler.texture)->id());
 
     switch(sampler.wrap_s)
     {
@@ -1016,8 +1015,8 @@ void Renderer::begin_material(const Material& material)
 
     int texture_index = 0;
 
-    for(const auto& sampler : material.samplers)
-        bind_sampler(sampler);
+    for(const auto* sampler : material.samplers)
+        bind_sampler(*sampler);
 
     model_matrix_id = material.location_model_view_projection_matrix;
 
@@ -1393,7 +1392,7 @@ void Renderer::draw_dl(const DrawList& drawlist)
                 break;
             case DrawList::DrawListType::Mesh:
 
-                if(drawlist._meshes[index].window->id() == current_window_->id())
+                if(drawlist._meshes[index].window->id() == window_->id())
                 {
                     begin_material(drawlist._meshes[index].material);
                     draw_mesh(&drawlist._meshes[index].mesh,

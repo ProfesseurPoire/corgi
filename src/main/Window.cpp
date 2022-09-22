@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_vulkan.h>
 #include <corgi/logger/log.h>
 #include <corgi/main/Game.h>
 #include <corgi/main/Window.h>
@@ -8,20 +9,29 @@
 #include <mutex>
 #include <stack>
 
+#define VK_USE_PLATFORM_WIN32_KHR
+
 namespace corgi
 {
 class Renderer;
 
-void Window::initialize(
-    const char* title, int x, int y, int width, int height, int monitor, bool vsync)
+Window::Window(Window::CreateInfo info)
+    : x_(info.x)
+    , y_(info.y)
+    , width_(info.width)
+    , height_(info.height)
+    , graphic_api_(info.graphic_api)
+    , monitor_(info.monitor)
+    , fullscreen_(info.fullscreen)
+    , isBorderless_(info.borderless)
+    , title_(info.title)
 {
-    title_   = title;
-    x_       = x;
-    y_       = y;
-    width_   = width;
-    height_  = height;
-    vsync_   = vsync;
-    monitor_ = monitor;
+    show();
+}
+
+bool Window::vsync() const noexcept
+{
+    return vsync_;
 }
 
 void Window::setBorderless(bool value)
@@ -103,8 +113,6 @@ int filterEvent(void* userdata, SDL_Event* event)
     return 1;
 }
 
-Window::Window() {}
-
 void Window::minimize()
 {
     SDL_MinimizeWindow(static_cast<SDL_Window*>(window_));
@@ -136,6 +144,11 @@ void Window::addMenuBar(ui::MenuBar* menuBar)
 bool Window::isMinimized() const noexcept
 {
     return isMinimized_;
+}
+
+Window::GraphicAPI Window::graphic_api() const noexcept
+{
+    return graphic_api_;
 }
 
 static SDL_HitTestResult SDLCALL hitTest(SDL_Window* w, const SDL_Point* pt, void* data)
@@ -208,6 +221,11 @@ void Window::show()
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
     uint32_t sdlFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+
+    if(graphic_api_ == GraphicAPI::Vulkan)
+    {
+        sdlFlags = SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+    }
 
     if(isBorderless())
     {
@@ -296,19 +314,9 @@ int Window::y() const
     return height_;
 }
 
-bool Window::is_vsync() const
-{
-    return vsync_;
-}
-
 void Window::title(const char* title)
 {
     title_ = title;
-}
-
-void Window::vsync(bool val)
-{
-    vsync_ = val;
 }
 
 void Window::resizable(bool val)

@@ -6,19 +6,14 @@
 
 #include <string>
 
+namespace Vulkan
+{
+
+
 struct Image
 {
     VkImage        image;
     VkDeviceMemory memory;
-
-    static inline VkImage        textureImage;
-    static inline VkDeviceMemory textureImageMemory;
-
-    static inline VkBuffer       stagingBuffer;
-    static inline VkDeviceMemory stagingBufferMemory;
-
-    static inline VkPipelineStageFlags sourceStage;
-    static inline VkPipelineStageFlags destinationStage;
 
     static void copyBufferToImage(VkDevice      device,
                                   VkCommandPool commandPool,
@@ -161,3 +156,4 @@ struct Image
                                       VkQueue            graphicsQueue,
                                       const std::string& filepath);
 };
+}

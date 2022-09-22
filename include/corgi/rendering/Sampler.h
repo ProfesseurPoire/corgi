@@ -1,5 +1,7 @@
 #pragma once
 
+#include <corgi/rendering/AbstractTexture.h>
+
 namespace corgi
 {
 
@@ -36,6 +38,26 @@ public:
         Repeat            = 4
     };
 
+    struct CreateInfo
+    {
+        MinFilter min_filter {MinFilter::Nearest};
+        MagFilter mag_filter {MagFilter::Nearest};
+        Wrap      wrap_s {Wrap::Repeat};
+        Wrap      wrap_t {Wrap::Repeat};
+        int       binding;
+        AbstractTexture*       texture;
+    };
+
+    Sampler(CreateInfo info)
+        : min_filter(info.min_filter)
+        , mag_filter(info.mag_filter)
+        , wrap_s(info.wrap_s)
+        , wrap_t(info.wrap_t)
+        , binding(info.binding)
+        , texture(info.texture)
+    {
+    }
+
     MinFilter min_filter {MinFilter::Nearest};
     MagFilter mag_filter {MagFilter::Nearest};
 
@@ -46,7 +68,7 @@ public:
     int binding;
 
     // The texture used
-    int texture_name;
+    AbstractTexture* texture;
 
     virtual void use() {}
 

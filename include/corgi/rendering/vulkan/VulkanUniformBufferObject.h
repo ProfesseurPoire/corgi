@@ -10,6 +10,29 @@ namespace corgi
 class VulkanUniformBufferObject : public UniformBufferObject
 {
 public:
+    VulkanUniformBufferObject(UniformBufferObject::CreateInfo info,
+                              VkDevice                        device,
+                              VkPhysicalDevice                physical_device)
+        : UniformBufferObject(info)
+    {
+        device_ = device;
+
+        uniformBuffers.resize(VulkanConstants::max_in_flight);
+        uniformBuffersMemory.resize(VulkanConstants::max_in_flight);
+
+        for(size_t i = 0; i < VulkanConstants::max_in_flight; i++)
+        {
+            // When creating the buffer I need to know the size it's going to take
+            // and the BufferMemory is where we're going to actually store the data.
+            // So the buffer points to the BufferMemory
+            Buffer::create(device, physical_device, size_,
+                           VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                           uniformBuffers[i], uniformBuffersMemory[i]);
+        }
+    }
+
     VulkanUniformBufferObject(VkDevice         device,
                               VkPhysicalDevice physical_device,
                               void*            data,

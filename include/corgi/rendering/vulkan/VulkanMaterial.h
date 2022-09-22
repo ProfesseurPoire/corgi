@@ -3,31 +3,38 @@
 #include <corgi/math/Matrix.h>
 #include <corgi/rendering/AbstractMaterial.h>
 #include <corgi/rendering/UniformBufferObject.h>
-//include<corgi / rendering />
 #include <corgi/rendering/vulkan/ImageView.h>
-#include <corgi/rendering/vulkan/VulkanSampler.h>
-#include <corgi/rendering/vulkan/VulkanUniformBufferObject.h>
-#include <corgi/rendering/vulkan/VulkanSwapchain.h>
 #include <corgi/rendering/vulkan/RenderPass.h>
-
+#include <corgi/rendering/vulkan/VulkanSampler.h>
+#include <corgi/rendering/vulkan/VulkanSwapchain.h>
+#include <corgi/rendering/vulkan/VulkanUniformBufferObject.h>
+#include <corgi/resources/Shader.h>
 #include <vulkan/vulkan.hpp>
 
 namespace corgi
 {
-    class VulkanPipeline;
+
+class VulkanPipeline;
 
 class VulkanMaterial : public AbstractMaterial
 {
 public:
+    // Temporary just so I can create the function for now
+    VulkanMaterial() = default;
+
+    VulkanMaterial(VkDevice                     device,
+                   VkPhysicalDevice             physical_device,
+                   AbstractMaterial::Descriptor descriptor);
+
     VulkanMaterial(VkDevice device, VkPhysicalDevice physical_device);
 
     // The sampler list
-    std::vector<corgi::VulkanSampler>        samplers;
+    std::vector<corgi::VulkanSampler*>       samplers;
     std::vector<corgi::UniformBufferObject*> ubos;
-    
+
     ~VulkanMaterial();
 
-    Swapchain swapchain;
+    Swapchain  swapchain;
     RenderPass render_pass;
 
     void set_data(void* data, int size);
@@ -37,17 +44,11 @@ public:
     int   size_;
 
     //void use() override;
-    void update(int current_image = 0);
+
+    void update() override;
 
     VkDevice         device_;
     VkPhysicalDevice physical_device_;
-
-    void add_uniform(VkDevice                         device,
-                     VkPhysicalDevice                 physical_device,
-                     void*                            data,
-                     int                              size,
-                     UniformBufferObject::ShaderStage shader_stage,
-                     int                              layout);
 
     // The descriptor thing
     VkDescriptorPool      descriptorPool;
@@ -55,6 +56,9 @@ public:
 
     // The descriptors sets
     std::vector<VkDescriptorSet> descriptorSets;
+
+    Shader* vertex_shader_ {nullptr};
+    Shader* fragment_shader_ {nullptr};
 
     // The buffers
     VkBuffer       indexBuffer;
@@ -75,16 +79,12 @@ public:
     void create_descriptor_pool(VkDevice device);
     void create_descriptor_sets(VkDevice device);
 
-    void createDescriptorSetLayout(VkDevice                         device);
+    void createDescriptorSetLayout(VkDevice device);
 
     void destroy_uniform_buffers(VkDevice device);
     void destroy_descriptor_set_layout(VkDevice device);
 
-
-
-
 private:
-
     void init_pipeline();
 };
 }    // namespace corgi

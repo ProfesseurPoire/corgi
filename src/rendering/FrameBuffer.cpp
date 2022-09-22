@@ -69,12 +69,13 @@ void FrameBuffer::init()
 
     // Sets the texture's color attachment
     color_attachment_ = std::make_unique<Texture>(
-        "color_attachment", width_, height_, Texture::Format::RGBA,
-        Texture::InternalFormat::RGBA, Texture::DataType::UnsignedByte);
+        "color_attachment", width_, height_, AbstractTexture::Format::RGBA,
+        AbstractTexture::InternalFormat::RGBA, AbstractTexture::DataType::UnsignedByte);
 
-    depth_buffer_ = std::make_unique<Texture>(
-        "depth_stencil_attachment", width_, height_, Texture::Format::DEPTH_STENCIL,
-        Texture::InternalFormat::DEPTH24_STENCIL8, Texture::DataType::UnsignedInt24_8);
+    depth_buffer_ = std::make_unique<Texture>("depth_stencil_attachment", width_, height_,
+                                              AbstractTexture::Format::DEPTH_STENCIL,
+                                  AbstractTexture::InternalFormat::DEPTH24_STENCIL8,
+                                              AbstractTexture::DataType::UnsignedInt24_8);
 
     RenderCommand::bind_frame_buffer(id_);
     RenderCommand::set_color_attachement(color_attachment_->id());

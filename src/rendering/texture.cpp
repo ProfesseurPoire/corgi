@@ -47,6 +47,17 @@ Texture::Texture()
     log_info("Creating new empty texture");
 }
 
+Texture::Texture(AbstractTexture::CreateInfo info)
+    : _width(info.width), _height(info.height)
+{
+    id_ = RenderCommand::generate_texture_object();
+
+    RenderCommand::bind_texture_object(id_);
+    RenderCommand::initialize_texture_object(info.format, info.internal_format, info.width,
+                                             info.height, info.data_type, info.data);
+    RenderCommand::end_texture();
+}
+
 Texture::Texture(const std::string& path, const std::string& relative_path)
     : name_(relative_path.c_str())
 {

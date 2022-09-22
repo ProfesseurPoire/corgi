@@ -17,11 +17,45 @@ public:
     VkPipelineLayout      pipelineLayout;
 
     VkDescriptorSetLayoutBinding bindingLayout;
-    ImageView                    imgview;
+
+    VulkanSampler(Sampler::CreateInfo info,
+                  VkDevice            device,
+                  VkPhysicalDevice    physical_device)
+        : Sampler(info)
+    {
+        VkSamplerCreateInfo samplerInfo {};
+        samplerInfo.sType     = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        //samplerInfo.maxAnisotropy    = ? ? ? ;
+
+        VkPhysicalDeviceProperties properties {};
+        vkGetPhysicalDeviceProperties(physical_device, &properties);
+
+        samplerInfo.maxAnisotropy           = properties.limits.maxSamplerAnisotropy;
+        samplerInfo.borderColor             = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerInfo.compareEnable           = VK_FALSE;
+        samplerInfo.compareOp               = VK_COMPARE_OP_ALWAYS;
+
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod     = 0.0f;
+        samplerInfo.maxLod     = 0.0f;
+
+        if(vkCreateSampler(device, &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
+            throw std::runtime_error("failed to create texture sampler!");
+    }
 
     void init(VkDevice device, VkPhysicalDevice physical_device, ImageView image_view)
     {
-        imgview = image_view;
+        // imgview = image_view;
 
         VkSamplerCreateInfo samplerInfo {};
         samplerInfo.sType     = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;

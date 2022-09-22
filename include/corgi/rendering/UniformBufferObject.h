@@ -16,6 +16,26 @@ public:
         Fragment
     };
 
+    /**
+     * @brief Struct used to init a Uniform Buffer Object
+     * 
+     */
+    struct CreateInfo
+    {
+        ShaderStage shader_stage;
+        void*       data;
+        int         size;
+        int         binding;
+    };
+
+    UniformBufferObject(CreateInfo create_info)
+        : shader_stage(create_info.shader_stage)
+        , data_(create_info.data)
+        , size_(create_info.size)
+        , binding_(create_info.binding)
+    {
+    }
+
     UniformBufferObject(ShaderStage shader_stage)
         : shader_stage(shader_stage)
     {

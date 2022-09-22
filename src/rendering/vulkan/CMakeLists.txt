@@ -3,8 +3,8 @@ target_sources(${PROJECT_NAME} PRIVATE
 	ImageView.cpp
 	Image.cpp
 	DepthBuffer.cpp
-	VulkanPipeline.cpp
 	VulkanUniformBufferObject.cpp
+	VulkanShader.cpp
 	VulkanFrameBuffer.cpp
 	VulkanSwapchain.cpp
 	VulkanVertexBuffer.cpp)

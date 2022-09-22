@@ -7,6 +7,15 @@ GLUniformBufferObject::~GLUniformBufferObject()
     glDeleteBuffers(1, &buffer_id_);
 }
 
+GLUniformBufferObject::GLUniformBufferObject(UniformBufferObject::CreateInfo create_info)
+    : UniformBufferObject(create_info)
+{
+    glGenBuffers(1, &buffer_id_);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, buffer_id_);
+    glBufferData(GL_UNIFORM_BUFFER, size_, data_, GL_DYNAMIC_DRAW);
+}
+
 GLUniformBufferObject::GLUniformBufferObject(ShaderStage shader_stage)
     : UniformBufferObject(shader_stage)
 {
@@ -17,6 +26,7 @@ void GLUniformBufferObject::set_data(void* data, int size)
 {
     data_ = data;
     size_ = size;
+
     glBindBuffer(GL_UNIFORM_BUFFER, buffer_id_);
     glBufferData(GL_UNIFORM_BUFFER, size, data, GL_DYNAMIC_DRAW);
 }
@@ -24,7 +34,7 @@ void GLUniformBufferObject::set_data(void* data, int size)
 void GLUniformBufferObject::use()
 {
     // The binding point is set in the shader
-    glBindBufferBase(GL_UNIFORM_BUFFER, 2, buffer_id_);
+    glBindBufferBase(GL_UNIFORM_BUFFER, binding_, buffer_id_);
 }
 
 void GLUniformBufferObject::update(int image)

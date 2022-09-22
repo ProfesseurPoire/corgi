@@ -5,6 +5,7 @@
 #include <corgi/math/Vec2.h>
 #include <corgi/math/Vec3.h>
 #include <corgi/math/Vec4.h>
+#include <corgi/rendering/AbstractMaterial.h>
 #include <corgi/rendering/Sampler.h>
 #include <corgi/rendering/ShaderProgram.h>
 #include <corgi/rendering/UniformBufferObject.h>
@@ -63,10 +64,10 @@ enum class StencilOp : char
 // mesh should be rendered. Also, the renderer will sort the renderer
 // component based on their material to reduce draw calls when the
 // material's parameters are the same
-class Material : public Resource
+class Material : public AbstractMaterial, public Resource
 {
 public:
-    std::vector<Sampler> samplers;
+    std::vector<Sampler*> samplers;
 
     enum class PolygonMode : char
     {
@@ -79,6 +80,7 @@ public:
 
     Material(const std::string& name = "empty");
     Material(const std::string& path, const std::string& relative_name);
+    Material(Descriptor descriptor);
 
     ~Material() override = default;
 
@@ -447,6 +449,8 @@ public:
     FaceMode _face = FaceMode::FrontAndBack;
 
     std::string name_;
+
+    void update() override;
 
 private:
     void generate_shaders();

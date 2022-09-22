@@ -1,7 +1,7 @@
 #pragma once
 
 #include <corgi/ShortString.h>
-#include <corgi/resources/Shader.h>
+#include <corgi/resources/GLShader.h>
 
 namespace corgi
 {
@@ -12,7 +12,10 @@ namespace corgi
         friend class Renderer;
 
         ShaderProgram() = default;
-        ShaderProgram(const char* name, const Shader* vertex_shader, const Shader* fragment_shader, unsigned id)
+        ShaderProgram(const char*     name,
+                      const GLShader* vertex_shader,
+                      const GLShader* fragment_shader,
+                      unsigned        id)
             : name_(name)
             , id_(id)
             , _vertex_shader(vertex_shader)
@@ -35,7 +38,7 @@ namespace corgi
         ShortString  name_;
         unsigned int id_;
 
-        const Shader* _vertex_shader;
-        const Shader* _fragment_shader;
+        const GLShader* _vertex_shader;
+        const GLShader* _fragment_shader;
     };
 }    // namespace corgi

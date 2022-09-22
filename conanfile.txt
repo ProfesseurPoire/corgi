@@ -16,7 +16,7 @@ harfbuzz:shared=True
 sdl:shared=True
 sdl_mixer:shared=True
 glad:shared=True
-glad:gl_version=4.4
+glad:gl_version=4.6
 
 [imports]
 bin, *.dll -> ../build/bin     # Copies all dll files from packages bin folder to my "bin" folder

@@ -2,7 +2,6 @@
 
 #include "IndexBuffer.h"
 #include "PhysicalDevice.h"
-#include <corgi/rendering/vulkan/VulkanPipeline.h>
 #include <corgi/rendering/vulkan/RenderPass.h>
 #include <corgi/rendering/vulkan/VulkanSwapchain.h>
 #include <corgi/rendering/vulkan/VulkanVertexBuffer.h>
@@ -44,8 +43,6 @@ public:
     std::vector<VkSemaphore> render_finished_semaphores_;
     std::vector<VkFence>     in_flight_fences_;
 
-    std::vector<std::unique_ptr<VulkanPipeline>> pipelines_;
-
     /**
      * \brief Helper function to create a buffer that stores indexes
      * \param indexes 
@@ -55,19 +52,12 @@ public:
 
     VertexBuffer create_vertex_buffer(std::span<Vertex> vertices);
 
-    /*!
-     * @brief   Creates a new pipeline and returns a reference to it
-     *
-     *          All pipeline are stored inside the vulkan renderer
-     */
-    VulkanPipeline& create_pipeline(const corgi::VulkanMaterial& ubo);
-
     /**
      * \brief   Loads an image file into a Vulkan Image
      * \param path 
      * \return 
      */
-    Image create_image(const std::string& path);
+    Vulkan::Image create_image(const std::string& path);
 
     void create_command_buffers();
     void create_command_pool();

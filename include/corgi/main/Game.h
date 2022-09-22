@@ -6,6 +6,7 @@
 #include <corgi/main/Profiler.h>
 #include <corgi/main/SDLContext.h>
 #include <corgi/main/Settings.h>
+#include <corgi/main/Window.h>
 #include <corgi/rendering/renderer.h>
 #include <corgi/utils/Physic.h>
 #include <corgi/utils/TimeHelper.h>
@@ -99,14 +100,7 @@ public:
     /*!
      * @brief   Creates a new window
      */
-    Window& add_window(const std::string& name,
-                       int                x,
-                       int                y,
-                       int                width,
-                       int                height,
-                       int                fullscreen,
-                       bool               vsync,
-                       bool               borderless);
+    Window& add_window(corgi::Window::CreateInfo info);
 
     /*!
 	* @brief Reloads the settings.ini file 

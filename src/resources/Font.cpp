@@ -183,9 +183,10 @@ Font::Font(const std::string& file, const std::string& name)
         auto n = (name + "-size:" + std::to_string(configuration.size) + "-" +
                   conversion[configuration.rendering_mode]);
 
-        configuration.texture.reset(new Texture(
-            n.c_str(), width, h, Texture::Format::RGBA, Texture::InternalFormat::RGBA,
-            Texture::DataType::UnsignedByte, pixels));
+        configuration.texture.reset(new Texture(n.c_str(), width, h,
+                                                AbstractTexture::Format::RGBA,
+                                                AbstractTexture::InternalFormat::RGBA,
+                        AbstractTexture::DataType::UnsignedByte, pixels));
 
         font_file.peek();
     }

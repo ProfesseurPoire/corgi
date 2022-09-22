@@ -31,14 +31,6 @@ void VulkanRenderer::create_command_buffers()
     }
 }
 
-VulkanPipeline& VulkanRenderer::create_pipeline(const corgi::VulkanMaterial& ubo)
-{
-    return *pipelines_
-                .emplace_back(std::make_unique<VulkanPipeline>(
-                    device_, render_pass_.render_pass, swapchain_, ubo))
-                .get();
-}
-
 IndexBuffer VulkanRenderer::create_index_buffer(std::span<const uint16_t> indexes)
 {
     IndexBuffer ib;
@@ -112,9 +104,9 @@ VulkanRenderer::VulkanRenderer(SDL_Window* window)
     create_sync_objects();
 }
 
-Image VulkanRenderer::create_image(const std::string& filepath)
+Vulkan::Image VulkanRenderer::create_image(const std::string& filepath)
 {
-    return Image::create_texture_image(device_, physical_device_.vulkan_device(),
+    return Vulkan::Image::create_texture_image(device_, physical_device_.vulkan_device(),
                                        commandPool, graphicsQueue, filepath);
 }
 
@@ -124,8 +116,6 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer,
                                          Mesh            mesh,
                                          corgi::VulkanMaterial* material)
 {
-    material->update(currentFrame);
-
     VkBuffer     vertexBuffers[] = {mesh.vb.buffer};
     VkDeviceSize offsets[]       = {0};
 

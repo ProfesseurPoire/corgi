@@ -1,103 +1,118 @@
 #include <SDL2/SDL_events.h>
-#include <corgi/components/Camera.h>
-#include <corgi/components/MeshRenderer.h>
 #include <corgi/components/SpriteRenderer.h>
-#include <corgi/ecs/Entity.h>
-#include <corgi/ecs/Scene.h>
+#include <corgi/components/Transform.h>
 #include <corgi/main/Window.h>
 #include <corgi/rendering/renderer.h>
 #include <corgi/rendering/texture.h>
 #include <corgi/systems/RenderingSystem.h>
-#include <corgi/systems/SpriteRendererSystem.h>
-#include <corgi/systems/TransformSystem.h>
 #include <corgi/utils/ResourcesCache.h>
-#include <glad/glad.h>
+#include <corgi/resources/image.h>
 
-#include <iostream>
+using namespace corgi;
+
+struct Uniform
+{
+    Matrix model;
+    Matrix view;
+    Matrix proj;
+};
 
 int main()
 {
-    corgi::Window window;
-    window.initialize("OpenGL", 100, 100, 500, 500, 0, true);
-    window.setBorderless(false);
-    window.show();
+    corgi::Window::CreateInfo window_info;
+    window_info.title       = "OpenGL";
+    window_info.x           = 100;
+    window_info.y           = 100;
+    window_info.width       = 1600;
+    window_info.height      = 900;
+    window_info.monitor     = 0;
+    window_info.graphic_api = corgi::Window::GraphicAPI::OpenGL;
+    window_info.fullscreen  = false;
+    window_info.borderless  = false;
+    window_info.vsync       = true;
 
-    ResourcesCache::directories().push_back("resources");
+    corgi::Window window(window_info);
+
     corgi::Renderer renderer;
     renderer.set_current_window(&window);
 
-    corgi::Scene scene;
+    auto vertex_shader = renderer.create_shader(
+        Shader::Stage::Vertex, "resources/corgi/materials/unlit/vert.spv");
+    auto fragment_shader = renderer.create_shader(
+        Shader::Stage::Fragment, "resources/corgi/materials/unlit/frag.spv");
 
-    scene.component_maps().add<corgi::Transform>();
-    scene.component_maps().add<corgi::Camera>();
-    scene.component_maps().add<corgi::MeshRenderer>();
-    scene.component_maps().add<corgi::SpriteRenderer>();
+    corgi::Image img("resources/corgi.img");
 
-    scene.emplace_system<corgi::TransformSystem>(
-        scene, *scene.component_maps().get<corgi::Transform>());
-    scene.emplace_system<corgi::SpriteRendererSystem>(scene);
+    AbstractTexture::CreateInfo texture_info;
+    texture_info.format             = AbstractTexture::Format::RGBA;
+    texture_info.internal_format    = AbstractTexture::InternalFormat::RGBA;
+    texture_info.data_type          = AbstractTexture::DataType::UnsignedByte;
+    texture_info.width              = img.width();
+    texture_info.height             = img.height();
+    texture_info.data               = img.pixels();
 
-    corgi::SpriteRendererSystem::initializeSpriteMesh();
+    auto corgi_texture = renderer.create_texture(texture_info);
 
-    scene.emplace_system<corgi::RenderingSystem>(
-        scene, *scene.component_maps().get<corgi::MeshRenderer>());
+    corgi::Sampler::CreateInfo sampler_info;
+    sampler_info.binding = 2;
+    sampler_info.texture = corgi_texture;
 
-    scene.root()->add_component<Transform>();
+    auto sampler = renderer.create_sampler(sampler_info);
 
-    auto entity = scene.new_entity("camera");
-    auto camera = entity->add_component<corgi::Camera>();
-    camera->set_window(window);
-    camera->clearColor(corgi::Color(255, 0, 0));
-    camera->ortho(-2000, 2000, -2000, 2000, -1000, 1000);
-    camera->viewport(0, 0, 500, 500);
+    AbstractMaterial::Descriptor descriptor;
+    descriptor.fragment_shader = fragment_shader;
+    descriptor.vertex_shader   = vertex_shader;
+    descriptor.samplers.push_back(sampler);
 
-    entity->add_component<corgi::Transform>();
+    auto material = renderer.create_material(descriptor);
 
-    auto t = corgi::ResourcesCache::get<Texture>("goose.tex");
+    float width  = 1.0f;
+    float height = 1.0f;
 
-    int quit = false;
-
-    Material* material = corgi::ResourcesCache::get<Material>(
-        "corgi/materials/unlit/unlit_simple_texture.mat");
-
-    material->set_uniform("mvp_matrix", Matrix::translation(0.0f, 0.0f, -10.0f));
-
-    Vec2 pivot_value {0.5f, 0.5f};
-
-    SDL_Event e;
-
-    float width  = t->width();
-    float height = t->height();
-
-    std::vector<float> vertices({-width, -height, 0.0f,   0.0f,  0.0f,   width, -height,
-                                 0.0f,   1.0f,    0.0f,   width, height, 0.0f,  1.0f,
-                                 1.0f,   -width,  height, 0.0f,  0.0f,   1.0f});
+    std::vector<float> vertices({-width, -height, 0.0f,   0.0f,  0.0f,   
+                                width, -height,   0.0f,   1.0f,    0.0f,   
+                                width, height, 0.0f,  1.0f,
+                                 1.0f,   
+                                -width,  height, 0.0f,  0.0f,   1.0f});
 
     std::vector<unsigned> indexes({0, 1, 2, 0, 2, 3});
 
-    auto mesh = Mesh::new_standard_2D_mesh(std::move(vertices), std::move(indexes));
+    auto mesh =
+        corgi::Mesh::new_standard_2D_mesh(std::move(vertices), std::move(indexes));
     mesh->build_bounding_volumes();
 
-    auto matrix = camera->projection_matrix() * Matrix::translation(0.0f, 0.0f, -10.0f) *
-                  corgi::Matrix::euler_angles(0.0f, 0.0f, 0.0f);
+    Uniform uniform;
+    uniform.proj = corgi::Matrix::ortho(-2, 2, -2, 2, -100, 100);
 
-    auto ubo = renderer.create_ubo(&matrix, sizeof(corgi::Matrix),
-                                   UniformBufferObject::ShaderStage::Vertex);
+    // Creating the UBO that communicates with the shaders
+    UniformBufferObject::CreateInfo uniform_info;
+    uniform_info.binding      = 0;
+    uniform_info.data         = &uniform;
+    uniform_info.size         = sizeof(Uniform);
+    uniform_info.shader_stage = UniformBufferObject::ShaderStage::Vertex;
+
+    auto ubo = renderer.create_ubo(uniform_info);
 
     material->ubo = ubo;
-    Sampler sampler;
-    sampler.binding      = 1;
-    sampler.texture_name = t->id();
-    material->samplers.push_back(sampler);
 
-    // TODO : This kinda looks like the sampler lmao
+    corgi::Renderer::begin_default_frame_buffer();
+    renderer.setClearColor(corgi::Color {0, 0, 0, 255});
+    renderer.set_viewport(0, 0, 500, 500);
+
+    material->enable_depth_test(true);
+    material->is_transparent(true);
 
     static auto startTime = std::chrono::high_resolution_clock::now();
+
+    bool quit = false;
+
     while(!quit)
     {
-        while(SDL_PollEvent(&e))
+        SDL_Event sdl_event;
+
+        while(SDL_PollEvent(&sdl_event))
         {
-            switch(e.type)
+            switch(sdl_event.type)
             {
                 case SDL_QUIT:
 
@@ -112,23 +127,13 @@ int main()
                          currentTime - startTime)
                          .count();
 
-        renderer.initialize_camera(Matrix(), camera.get());
-
-        glClearStencil(0);
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-        glStencilMask(0xFF);
-
+        // Probably need to clear too
         renderer.clear();
 
-        material->set_texture(0, *t);
+        uniform.model = corgi::Matrix::translation(0.0f, 0.0f, 0.0f) *
+                        corgi::Matrix::euler_angles(0.0f, 0.0f, time);
 
-        ubo->update();
-
-        matrix = camera->projection_matrix() * Matrix::translation(0.0f, 0.0f, -10.0f) *
-                 corgi::Matrix::euler_angles(0.0f, 0.0f, time);
-
-        material->enable_depth_test(true);
-        material->is_transparent(true);
+        material->update();
 
         renderer.draw(*mesh.get(), *material);
 

@@ -8,7 +8,7 @@ void DepthBuffer::initialize(Swapchain        swapchain,
     const VkFormat depth_format = findDepthFormat(physical_device);
 
     // Our Depth Buffer is an image and needs to be the same resolution as the color attachment
-    depth_image=  Image::create_image(
+    depth_image=  Vulkan::Image::create_image(
         device, 
         physical_device,
         swapchain.create_info.imageExtent.width,

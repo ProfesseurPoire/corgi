@@ -6,6 +6,7 @@ target_sources(${PROJECT_NAME} PUBLIC
 	image.h
 	Mesh.h
 	Resource.h
+	GLShader.h
 	Shader.h
 	Sound.h
 	Tilemap.h)

@@ -3,22 +3,37 @@
 #include <corgi/containers/Vector.h>
 
 #include <string>
+#include <vector>
 
-// TODO :	Instead of using my SimpleString class I could also work
-//			with char*
+namespace corgi
+{
 
-/*
+/* @brief
  *  The filesystem namespace contains functions and structures meant
  *  to help with file operations. At the moment it's mostly a wrapper for 
  *  std::filesystem. But if a platform doesn't support C++ 17, I'll "just"
  *  have to add a compilation flag and use system calls for this specific
  *  platform
  */
-namespace corgi
-{
 namespace filesystem
 {
 class FileInfo;
+
+/**
+ * @brief Reads a file and returns its content in a string in text format
+ * 
+ * @param filepath 
+ * @return std::string 
+ */
+[[nodiscard]] std::string read_file(const std::string& filepath);
+
+/**
+ * @brief Reads a file and return its content in a string in a binary format
+ * 
+ * @param filepath 
+ * @return std::vector<char> 
+ */
+[[nodiscard]] std::vector<char> read_file_binary(const std::string& filepath);
 
 /*!
  * @brief Returns the file's size in bytes

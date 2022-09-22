@@ -9,6 +9,8 @@ class GLUniformBufferObject : public UniformBufferObject
 {
 public:
     GLUniformBufferObject(ShaderStage shader_stage);
+    GLUniformBufferObject(ShaderStage shader_stage, void* data, int size, int binding);
+    GLUniformBufferObject(UniformBufferObject::CreateInfo create_info);
 
     ~GLUniformBufferObject();
 

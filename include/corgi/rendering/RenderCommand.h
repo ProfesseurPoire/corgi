@@ -40,7 +40,7 @@ public:
     static void begin_texture(const Texture* texture);
     static void end_texture();
 
-    static unsigned int create_shader(Shader::Type type);
+    static unsigned int create_shader(GLShader::Type type);
 
     // static void texture_parameter(Texture::MagFilter filter);
     // static void texture_parameter(Texture::MinFilter filter);

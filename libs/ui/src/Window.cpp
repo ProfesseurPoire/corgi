@@ -9,6 +9,7 @@
 #include <corgi/utils/ResourcesCache.h>
 #include <corgi/main/Window.h>
 
+
 namespace corgi::ui
 {
 void ui::Window::update_rectangles()
