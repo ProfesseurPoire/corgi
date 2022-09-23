@@ -179,7 +179,6 @@ int main(int argc, char** argv)
 
                 // the function reading the png file will always convert to rgba
                 corgi_image.write(reinterpret_cast<const char*>(pixels), w * h * 4);
-
                 corgi_image.close();
 
                 delete image;

@@ -24,7 +24,9 @@ public:
 
     VulkanMaterial(VkDevice                     device,
                    VkPhysicalDevice             physical_device,
-                   AbstractMaterial::Descriptor descriptor);
+                   AbstractMaterial::Descriptor descriptor,
+                   RenderPass                   render_pass,
+                   Swapchain swapchain);
 
     VulkanMaterial(VkDevice device, VkPhysicalDevice physical_device);
 

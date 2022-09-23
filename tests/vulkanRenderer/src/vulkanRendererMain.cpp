@@ -127,12 +127,15 @@ int main(int argc, char** argv)
 
     vulkan_renderer = new VulkanRenderer(static_cast<SDL_Window*>(window.sdl_window()));
 
+    // TODO : Replace the vulkan_renderer thing please
     corgi::VulkanRenderer vr;
     vr.set_current_window(&window);
     vr.physical_device_ = vulkan_renderer->physical_device_.vulkan_device();
     vr.device_          = vulkan_renderer->device_;
     vr.command_pool     = vulkan_renderer->commandPool;
     vr.graphics_queue   = vulkan_renderer->graphicsQueue;
+    vr.render_pass      = vulkan_renderer->render_pass_;
+    vr.swapchain        = vulkan_renderer->swapchain_;
 
     auto vertex_shader =
         vr.create_shader(corgi::Shader::Stage::Vertex, "shaders/vert.spv");
@@ -151,12 +154,6 @@ int main(int argc, char** argv)
     texture_info.data            = img.pixels();
 
     auto texture = vr.create_texture(texture_info);
-
-    //auto image1 = vulkan_renderer->create_image("corgi.img");
-
-   // ImageView image_view_1;
-
-    VkSampler sampler_1;
 
     std::vector<Vertex> vertices = {{-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f},
                                     {0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f},
@@ -192,9 +189,6 @@ int main(int argc, char** argv)
 
     auto material              = vr.create_material(descriptor);
     material->ubos.push_back(ubo_test1);
-
-    material->render_pass = vulkan_renderer->render_pass_;
-    material->swapchain   = vulkan_renderer->swapchain_;
 
     material->init();
 

@@ -20,6 +20,8 @@ public:
     VkPhysicalDevice physical_device_;
     VkCommandPool command_pool;
     VkQueue         graphics_queue;
+    RenderPass render_pass;
+    Swapchain swapchain;
 
     Texture create_texture();
     void    delete_texture(Texture texture);
@@ -84,7 +86,8 @@ public:
     corgi::VulkanMaterial*
     create_material(AbstractMaterial::Descriptor descriptor) override
     {
-        return new VulkanMaterial(device_, physical_device_, descriptor);
+        return new VulkanMaterial(device_, physical_device_, descriptor, render_pass,
+                                  swapchain);
     }
 
 private:

@@ -22,6 +22,5 @@ VulkanShader::VulkanShader(VkDevice device, Stage stage, const std::string& file
 
 VulkanShader::~VulkanShader()
 {
-
     vkDestroyShaderModule(device_, shader_module_, nullptr);
 }

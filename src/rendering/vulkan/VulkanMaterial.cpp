@@ -220,11 +220,15 @@ static VkShaderModule create_shader_module(VkDevice device, const std::vector<ch
 
 VulkanMaterial::VulkanMaterial(VkDevice                     device,
                                VkPhysicalDevice             physical_device,
-                               AbstractMaterial::Descriptor descriptor)
+                               AbstractMaterial::Descriptor descriptor,
+                               RenderPass                   render_pass,
+                               Swapchain                    swapchain)
     : AbstractMaterial()
 {
     device_          = device;
     physical_device_ = physical_device;
+    this->swapchain  = swapchain;
+    this->render_pass = render_pass;
 
     vertex_shader_   = descriptor.vertex_shader;
     fragment_shader_ = descriptor.fragment_shader;

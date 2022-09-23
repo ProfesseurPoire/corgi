@@ -38,6 +38,7 @@ int main()
 
     auto vertex_shader = renderer.create_shader(
         Shader::Stage::Vertex, "resources/corgi/materials/unlit/vert.spv");
+
     auto fragment_shader = renderer.create_shader(
         Shader::Stage::Fragment, "resources/corgi/materials/unlit/frag.spv");
 
